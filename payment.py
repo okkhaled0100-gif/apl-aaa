@@ -67,12 +67,12 @@ def create_edfapay_invoice(user_id, amount, user_name='Customer'):
             user_name=user_name
         )
         
-        print(f"📤 EdfaPay Request: {payload}")
+        print(f"📤 EdfaPay Request: order_id={order_id}, amount={amount}")
         
         # إرسال الطلب
         response = requests.post(EDFAPAY_API_URL, data=payload, timeout=30)
         print(f"📤 EdfaPay Response Status: {response.status_code}")
-        print(f"📤 EdfaPay Response: {response.text[:500]}")
+        print(f"📤 EdfaPay Response received (status={response.status_code})")
         
         result = response.json()
         
@@ -116,18 +116,18 @@ def create_wallet_payment(user_id, amount):
             user_id=user_id
         )
         
-        print(f"📤 Wallet Pay Request: {payload}")
+        print(f"📤 Wallet Pay Request: order_id={order_id}, amount={amount_int}")
         
         response = requests.post(EDFAPAY_API_URL, data=payload, timeout=30)
-        print(f"📥 EdfaPay Raw Response: {response.text}")
+        print(f"📥 EdfaPay Raw Response received (status={response.status_code})")
         
         try:
             result = response.json()
         except:
-            print(f"❌ فشل في تحليل JSON: {response.text}")
+            print(f"❌ فشل في تحليل JSON (status={response.status_code})")
             return {'success': False, 'error': 'خطأ في بوابة الدفع - حاول مرة أخرى'}
         
-        print(f"📥 EdfaPay Response: {result}")
+        print(f"📥 EdfaPay Response: success={result.get('redirect_url') is not None}")
         
         if response.status_code == 200 and result.get('redirect_url'):
             return {
@@ -173,7 +173,7 @@ def register_callback_url():
         )
         
         print(f"📡 تسجيل Callback URL: {response.status_code}")
-        print(f"📡 Response: {response.text}")
+        print(f"📡 Callback registration (status={response.status_code})")
         
         if response.status_code == 200:
             print(f"✅ تم تسجيل Callback URL: {callback_url}")
