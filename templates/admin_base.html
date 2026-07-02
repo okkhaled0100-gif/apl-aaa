@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TR Admin">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>{% block title %}لوحة التحكم{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --bg: #0f0f1a;
+            --sidebar-bg: #16213e;
+            --card: rgba(22, 33, 62, 0.95);
+            --text: #fff;
+            --muted: rgba(255,255,255,0.6);
+            --success: #00b894;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-left: 1px solid rgba(108, 92, 231, 0.3);
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, var(--primary), #8b7cf7);
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+        .sidebar-header .store-name {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 4px;
+        }
+        .sidebar-nav {
+            padding: 10px 0;
+        }
+        .nav-section {
+            padding: 10px 15px 5px;
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-right: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(108, 92, 231, 0.15);
+            border-right-color: var(--primary-light);
+        }
+        .nav-item.active {
+            background: rgba(108, 92, 231, 0.25);
+            border-right-color: var(--primary);
+        }
+        .nav-item .icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .nav-item .text {
+            flex: 1;
+            font-size: 14px;
+        }
+        .nav-item .badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .nav-item .badge.success { background: var(--success); }
+        .nav-item .badge.warning { background: var(--warning); }
+        .nav-item .badge.danger { background: var(--danger); }
+        .main-content {
+            flex: 1;
+            margin-right: 260px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+        }
+        .top-bar h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+        .top-bar-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            text-align: center;
+        }
+        .stat-card .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-light);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #8b7cf7);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        th {
+            background: rgba(0,0,0,0.2);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        tr:hover td {
+            background: rgba(108, 92, 231, 0.08);
+        }
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-right: 0;
+                padding: 15px 10px;
+            }
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 15px 10px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .stat-card .icon {
+                font-size: 26px;
+            }
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+            .top-bar h1 {
+                font-size: 18px;
+            }
+            .top-bar-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .btn-sm {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 8px 6px;
+            }
+        }
+        
+        /* شاشات صغيرة جداً (440px وأقل) */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 10px 8px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px 8px;
+            }
+            .stat-card .value {
+                font-size: 18px;
+            }
+            .stat-card .label {
+                font-size: 11px;
+            }
+            .stat-card .icon {
+                font-size: 22px;
+                margin-bottom: 5px;
+            }
+            .top-bar {
+                padding: 10px 12px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+            .top-bar h1 {
+                font-size: 16px;
+            }
+            .card {
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+            .card-title {
+                font-size: 14px;
+            }
+            table {
+                font-size: 11px;
+            }
+            th, td {
+                padding: 6px 4px;
+                white-space: nowrap;
+            }
+            .btn {
+                padding: 7px 12px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+            .btn-sm {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+            .mobile-toggle {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+                bottom: 15px;
+                left: 15px;
+            }
+            /* إخفاء بعض الأعمدة غير المهمة */
+            .hide-mobile {
+                display: none !important;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(108, 92, 231, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 280px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); }
+        @media (max-width: 768px) {
+            .toast {
+                right: 20px;
+                left: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2> لوحة التحكم</h2>
+            <div class="store-name">TR Store</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">الرئيسية</div>
+            <a href="/dashboard" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">نظرة عامة</span>
+            </a>
+            <div class="nav-section">المتجر</div>
+            <a href="/admin/products" class="nav-item {% if active_page == 'products' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">المنتجات</span>
+                <span class="badge" id="productsCount">-</span>
+            </a>
+            <a href="/admin/categories" class="nav-item {% if active_page == 'categories' %}active{% endif %}">
+                <span class="icon">📁</span>
+                <span class="text">الأقسام</span>
+            </a>
+            <div class="nav-section">المالية</div>
+            <a href="/admin/orders" class="nav-item {% if active_page == 'orders' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">الطلبات</span>
+                <span class="badge warning" id="pendingOrders">-</span>
+            </a>
+            <a href="/admin/invoices" class="nav-item {% if active_page == 'invoices' %}active{% endif %}">
+                <span class="icon">📄</span>
+                <span class="text">الفواتير</span>
+            </a>
+            <a href="/admin/balance-logs" class="nav-item {% if active_page == 'balance_logs' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">سجل الرصيد</span>
+            </a>
+            <a href="/admin/withdrawals" class="nav-item {% if active_page == 'withdrawals' %}active{% endif %}">
+                <span class="icon">💸</span>
+                <span class="text">طلبات السحب</span>
+            </a>
+            <div class="nav-section">العملاء</div>
+            <a href="/admin/customers" class="nav-item {% if active_page == 'customers' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">العملاء</span>
+                <span class="badge success" id="customersCount">-</span>
+            </a>
+            <a href="/admin/carts" class="nav-item {% if active_page == 'carts' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">السلات النشطة</span>
+            </a>
+            <div class="nav-section">الإعدادات</div>
+            <a href="/admin/header" class="nav-item {% if active_page == 'header' %}active{% endif %}">
+                <span class="icon">🎨</span>
+                <span class="text">الشريط العلوي</span>
+            </a>
+            <a href="/admin/charge-keys" class="nav-item {% if active_page == 'charge_keys' %}active{% endif %}">
+                <span class="icon"></span>
+                <span class="text">كروت الشحن</span>
+            </a>
+            <a href="/admin/managers" class="nav-item {% if active_page == 'managers' %}active{% endif %}">
+                <span class="icon">👨‍💼</span>
+                <span class="text">إدارة المشرفين</span>
+            </a>
+            <div class="nav-section">الحساب</div>
+            <a href="/" class="nav-item">
+                <span class="icon"></span>
+                <span class="text">زيارة المتجر</span>
+            </a>
+            <a href="/logout_admin" class="nav-item">
+                <span class="icon"></span>
+                <span class="text">تسجيل الخروج</span>
+            </a>
+        </nav>
+    </aside>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    <div class="toast" id="toast"></div>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        async function loadSidebarStats() {
+            try {
+                const res = await fetch('/api/admin/dashboard_stats');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('productsCount').textContent = data.stats.total_products || 0;
+                    document.getElementById('pendingOrders').textContent = data.stats.pending_orders || 0;
+                    document.getElementById('customersCount').textContent = data.stats.total_users || 0;
+                }
+            } catch (e) {
+                console.error('Error loading sidebar stats:', e);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadSidebarStats);
+
+        // تسجيل Service Worker للـ PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then(reg => console.log('[PWA] Service Worker registered, scope:', reg.scope))
+                .catch(err => console.warn('[PWA] SW registration failed:', err));
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

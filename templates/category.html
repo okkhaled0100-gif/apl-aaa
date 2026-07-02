@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} - المتجر الرقمي{% endblock %}
+{% block extra_css %}
+<style>
+    body {
+        padding-top: 70px;
+    }
+    .page-header {
+        background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(100, 200, 255, 0.1));
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+        margin-bottom: 20px;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        color: var(--primary);
+        margin: 0;
+    }
+    .page-header .count {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .section-title {
+        font-size: 20px;
+        margin: 25px 0 15px;
+        color: var(--primary);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .product-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+    }
+    .product-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(108, 92, 231, 0.2);
+    }
+    .product-image {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, var(--primary) 0%, #5f3dc4 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        overflow: hidden;
+    }
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .product-content {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .product-name {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .product-image-link, .product-name-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .product-image-link:hover + .product-content .product-name,
+    .product-name-link:hover .product-name {
+        color: var(--primary);
+    }
+    .product-price {
+        font-size: 16px;
+        color: var(--primary);
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .product-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+    .product-badge.manual {
+        background: rgba(243, 156, 18, 0.2);
+        color: #f39c12;
+    }
+    .product-badge.instant {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    .product-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Tajawal', sans-serif;
+        font-weight: bold;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    .product-btn:hover {
+        background: #5f3dc4;
+        transform: scale(1.02);
+    }
+    .product-btn.manual-btn {
+        background: #f39c12;
+    }
+    .product-btn.manual-btn:hover {
+        background: #e67e22;
+    }
+    .product-btn.sold-btn {
+        background: var(--green);
+    }
+    .product-btn:disabled {
+        background: #555;
+        cursor: not-allowed;
+    }
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 1100;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
+    }
+    .modal-overlay.show {
+        display: flex;
+    }
+    .modal-content {
+        background: var(--card-bg);
+        border-radius: 16px;
+        width: 90%;
+        max-width: 450px;
+        border: 1px solid var(--border-color);
+        animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #f39c12;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 28px;
+        cursor: pointer;
+    }
+    .modal-body {
+        padding: 20px;
+    }
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: white;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 14px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #f39c12;
+    }
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
+    .btn-modal {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 600;
+    }
+    .btn-secondary {
+        background: rgba(255,255,255,0.1);
+        color: white;
+    }
+    .btn-warning {
+        background: #f39c12;
+        color: white;
+    }
+    .footer {
+        text-align: center;
+        padding: 20px;
+        color: #555;
+        border-top: 1px solid var(--border-color);
+        margin-top: 40px;
+    }
+    @media (max-width: 768px) {
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .product-image {
+            height: 120px;
+        }
+        .product-content {
+            padding: 12px;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <div class="page-header">
+        <h1> {{ category.name }}</h1>
+        <div class="count">{{ items|length }} منتج متاح</div>
+    </div>
+    <div class="container">
+        {% if items %}
+        <h3 class="section-title"> المنتجات المتاحة</h3>
+        <div class="products-grid">
+            {% for item in items %}
+            <div class="product-card">
+                <a href="/product/{{ item.id }}" class="product-image-link">
+                    <div class="product-image">
+                        {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
+                        {% else %}
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="product-content">
+                    <div>
+                        <a href="/product/{{ item.id }}" class="product-name-link">
+                            <div class="product-name">{{ item.item_name }}</div>
+                        </a>
+                        {% if item.delivery_type == 'manual' %}
+                        <span class="product-badge manual">👨‍💼 تسليم يدوي</span>
+                        {% else %}
+                        <span class="product-badge instant"> تسليم فوري</span>
+                        {% endif %}
+                        <div class="product-price">{{ item.price|round(2) }} ر.س</div>
+                    </div>
+                    {% if item.delivery_type == 'manual' %}
+                    <button class="product-btn manual-btn" 
+                            data-id="{{ item.id }}" 
+                            data-name="{{ item.item_name }}" 
+                            data-instructions="{{ item.buyer_instructions|default('أدخل المتطلبات المطلوبة', true) }}"
+                            onclick="openManualModalFromBtn(this)">
+                         أدخل المتطلبات
+                    </button>
+                    {% else %}
+                    <button class="product-btn" 
+                            data-id="{{ item.id }}" 
+                            data-name="{{ item.item_name }}"
+                            onclick="addToCartFromBtn(this)">
+                        🛒 أضف للسلة
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <h2 style="color: var(--text-muted); margin: 15px 0;">لا توجد منتجات متاحة</h2>
+            <p class="text">قد تتم إضافة منتجات في هذه الفئة قريباً</p>
+            <a href="/" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">العودة للفئات</a>
+        </div>
+        {% endif %}
+        {% if sold_items %}
+        <h3 class="section-title" style="color: #888;"> المنتجات المباعة ({{ sold_items|length }})</h3>
+        <div class="products-grid">
+            {% for item in sold_items %}
+            <a href="/product/{{ item.id }}" class="product-card" style="opacity: 0.6; text-decoration: none; color: inherit;">
+                <div class="product-image" style="background: #555;">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="opacity: 0.5;">
+                    {% else %}
+                    {% endif %}
+                </div>
+                <div class="product-content">
+                    <div>
+                        <div class="product-name">{{ item.item_name }}</div>
+                        <div class="product-price" style="color: #888;">{{ item.price|round(2) }} ر.س</div>
+                    </div>
+                    <button class="product-btn" disabled>
+                         مباع
+                    </button>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if my_purchases %}
+        <h3 class="section-title" style="color: var(--green);"> مشترياتي من هذه الفئة ({{ my_purchases|length }})</h3>
+        <div class="products-grid">
+            {% for purchase in my_purchases %}
+            <div class="product-card" style="border-color: var(--green);">
+                <div class="product-image" style="background: linear-gradient(135deg, var(--green) 0%, #00a86b 100%);">
+                </div>
+                <div class="product-content">
+                    <div>
+                        <div class="product-name">{{ purchase.item_name }}</div>
+                        <div class="product-price" style="color: var(--green);">{{ purchase.price|round(2) }} ر.س</div>
+                    </div>
+                    <button class="product-btn sold-btn">
+                        ✓ مشتراة
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="modal-overlay" id="manualModal" onclick="closeManualModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3> أدخل متطلباتك</h3>
+                <button class="close-btn" onclick="closeManualModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label> المنتج:</label>
+                    <div id="modalProductName" style="color: var(--primary); font-weight: bold;"></div>
+                </div>
+                <div class="form-group">
+                    <label> التعليمات:</label>
+                    <div id="modalInstructions" class="hint"></div>
+                </div>
+                <div class="form-group">
+                    <label> أدخل بياناتك / متطلباتك:</label>
+                    <textarea id="buyerDetails" class="form-control" placeholder="مثال: اسم المستخدم، الإيميل، الخ..."></textarea>
+                    <div class="hint"> تأكد من صحة البيانات قبل الإرسال</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-secondary" onclick="closeManualModal()">❌ إلغاء</button>
+                <button class="btn-modal btn-warning" onclick="confirmAddManual()">🛒 إضافة للسلة</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    const currentUserIdValue = '{{ current_user_id }}';
+    const currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
+    let currentManualProduct = { id: '', name: '' };
+    
+    function openManualModalFromBtn(btn) {
+        const productId = btn.dataset.id;
+        const productName = btn.dataset.name;
+        const instructions = btn.dataset.instructions;
+        openManualModal(productId, productName, instructions);
+    }
+    function addToCartFromBtn(btn) {
+        const productId = btn.dataset.id;
+        const productName = btn.dataset.name;
+        addToCart(productId, productName, '');
+    }
+    function openManualModal(productId, productName, instructions) {
+        currentManualProduct = { id: productId, name: productName };
+        document.getElementById('modalProductName').textContent = productName;
+        document.getElementById('modalInstructions').textContent = instructions || 'أدخل المتطلبات المطلوبة للمنتج';
+        document.getElementById('buyerDetails').value = '';
+        document.getElementById('manualModal').classList.add('show');
+    }
+    function closeManualModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('manualModal').classList.remove('show');
+    }
+    function confirmAddManual() {
+        const buyerDetails = document.getElementById('buyerDetails').value.trim();
+        if (!buyerDetails) {
+            alert(' يجب إدخال المتطلبات المطلوبة!');
+            return;
+        }
+        if (buyerDetails.length < 3) {
+            alert(' المتطلبات قصيرة جداً!');
+            return;
+        }
+        addToCart(currentManualProduct.id, currentManualProduct.name, buyerDetails);
+        closeManualModal();
+    }
+    async function addToCart(productId, productName, buyerDetails) {
+        try {
+            const response = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: currentUserId,
+                    product_id: productId,
+                    buyer_details: buyerDetails || ''
+                })
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                showToast('🛒✨ تم إضافة ' + productName + ' للسلة');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('❌ ' + (data.message || 'حدث خطأ'), 'error');
+            }
+        } catch (error) {
+            showToast('📡 خطأ في الاتصال', 'error');
+        }
+    }
+    (function() {
+        var jsonStr = {{ categories_json|tojson }};
+        try {
+            window.categoriesData = JSON.parse(jsonStr);
+        } catch(e) {
+            window.categoriesData = [];
+        }
+    })();
+</script>
+{% endblock %}

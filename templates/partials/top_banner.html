@@ -1,0 +1,110 @@
+{# الهيدر البسيط - زر الرجوع + السلة #}
+<style>
+    .simple-header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 60px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        display: flex;
+        flex-direction: row-reverse;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        z-index: 999;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    }
+    .back-btn {
+        background: rgba(108, 92, 231, 0.2);
+        border: 1px solid rgba(108, 92, 231, 0.4);
+        color: #fff;
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 22px;
+        text-decoration: none;
+    }
+    .back-btn:hover {
+        background: rgba(108, 92, 231, 0.4);
+        border-color: #6c5ce7;
+        transform: scale(1.05);
+    }
+    .cart-widget {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 206, 201, 0.15);
+        border: 1px solid rgba(0, 206, 201, 0.3);
+        border-radius: 12px;
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .cart-widget:hover {
+        background: rgba(0, 206, 201, 0.25);
+        border-color: #00cec9;
+        transform: scale(1.02);
+    }
+    .cart-icon {
+        font-size: 20px;
+    }
+    .cart-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.2;
+    }
+    .cart-count {
+        font-size: 10px;
+        color: #00cec9;
+        font-weight: bold;
+    }
+    .cart-total {
+        font-size: 11px;
+        color: #fff;
+        font-weight: 600;
+    }
+    body {
+        padding-top: 70px;
+    }
+</style>
+<header class="simple-header">
+    <a href="/cart" class="cart-widget" title="السلة">
+        <span class="cart-icon">🛒</span>
+        <div class="cart-info">
+            <span class="cart-count" id="headerCartCount">0 منتج</span>
+            <span class="cart-total" id="headerCartTotal">0 ر.س</span>
+        </div>
+    </a>
+    <a href="/" class="back-btn" title="الرجوع للرئيسية">
+        ←
+    </a>
+</header>
+<script>
+    (function() {
+        const userId = '{{ current_user_id or user_id or current_user or "" }}';
+        if (!userId || userId === '' || userId === '0' || userId === 'None') return;
+        
+        // ✅ بدون user_id في الرابط - السيرفر يقرأه من الجلسة
+        fetch('/api/cart/get')
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.cart && data.cart.items) {
+                    const items = data.cart.items.filter(i => !i.sold);
+                    const count = items.length;
+                    let total = 0;
+                    items.forEach(i => total += (i.current_price || i.price));
+                    document.getElementById('headerCartCount').textContent = count + ' منتج';
+                    document.getElementById('headerCartTotal').textContent = total.toFixed(0) + ' ر.س';
+                }
+            })
+            .catch(() => {});
+    })();
+</script>

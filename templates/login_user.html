@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تسجيل الدخول - GamersTR</title>
+    {% include 'partials/pwa_head.html' %}
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Particles.js Background */
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        .back-link:active, .back-link:hover {
+            color: #00ff88;
+            border-color: rgba(0,255,136,0.3);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(15, 15, 25, 0.35);
+            backdrop-filter: blur(24px) saturate(1.6) brightness(1.1);
+            -webkit-backdrop-filter: blur(24px) saturate(1.6) brightness(1.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* حد سفلي أخضر متوهج */
+        .login-box::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ff88, #c8ff00, transparent);
+            border-radius: 0 0 24px 24px;
+            filter: blur(1px);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+        }
+        .logo-section h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .logo-section p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-field {
+            margin-bottom: 20px;
+        }
+        .form-field label {
+            display: block;
+            color: #999;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .form-field input {
+            width: 100%;
+            padding: 15px 16px;
+            border: 1.5px solid #2a2a3a;
+            border-radius: 14px;
+            background: #0e0e16;
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .form-field input:focus {
+            border-color: #00ff88;
+        }
+        .form-field input::placeholder {
+            color: #444;
+        }
+        .form-field input[dir="ltr"] {
+            text-align: left;
+        }
+
+        .code-field input {
+            letter-spacing: 10px;
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #00ff88;
+            padding: 18px 16px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #c8ff00, #9acd32);
+            color: #0a0a0f;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 5px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #2a2a3a;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: border-color 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-secondary:active {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .switch-link {
+            text-align: center;
+            margin: 18px 0;
+        }
+        .switch-link a {
+            color: #00ff88;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .switch-link a:active {
+            background: rgba(0,255,136,0.1);
+        }
+
+        .help-note {
+            color: #555;
+            font-size: 12px;
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        .timer-box {
+            background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.15);
+            color: #00ff88;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 28px;
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .msg {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 14px;
+            text-align: center;
+            display: none;
+        }
+        .msg.err {
+            background: rgba(255,71,87,0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255,71,87,0.2);
+            display: block;
+        }
+        .msg.ok {
+            background: rgba(0,255,136,0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0,255,136,0.2);
+            display: block;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .security-hint {
+            color: #555;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.7;
+        }
+        .security-hint b { color: #00ff88; }
+
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .login-box { 
+                padding: 24px 18px; 
+                border-radius: 20px;
+                max-width: 360px;
+            }
+            .logo-section { margin-bottom: 18px; }
+            .logo-icon { width: 50px; height: 50px; margin-bottom: 10px; }
+            .logo-section h1 { font-size: 18px; }
+            .logo-section p { font-size: 12px; }
+            .form-label { font-size: 13px; margin-bottom: 6px; }
+            .form-input { padding: 12px 14px; font-size: 14px; }
+            .btn-send { padding: 13px; font-size: 15px; }
+            .alt-method { font-size: 12px; margin: 12px 0; }
+            .register-link { font-size: 13px; margin-top: 10px; }
+            .sms-note, .security-hint { font-size: 11px; }
+            .code-field input { letter-spacing: 8px; font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Particles.js Background -->
+    <div id="particles-js"></div>
+
+    <a href="/" class="back-link">الرئيسية →</a>
+
+    <div class="login-box">
+
+        <!-- ===== الخطوة 1: إدخال المعرف ===== -->
+        <div id="step1" class="step active">
+            <div class="logo-section">
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
+                <h1>تسجيل الدخول</h1>
+                <p id="loginSubtitle">سجّل دخولك للمتابعة</p>
+            </div>
+
+            <!-- جوال SMS -->
+            <div id="phoneSection" class="section active">
+                <form id="phoneForm">
+                    <div class="form-field">
+                        <label>📱 رقم الجوال</label>
+                        <input type="tel" id="loginPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
+                    </div>
+                    <div class="switch-link">
+                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
+                    </div>
+                    <button type="submit" id="sendCodePhoneBtn" class="btn-primary">📲 إرسال كود SMS</button>
+                </form>
+                <div class="switch-link" style="margin-top:14px">
+                    <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
+                </div>
+                <div class="help-note">💬 سيصلك كود التحقق برسالة SMS</div>
+            </div>
+
+            <!-- تلغرام -->
+            <div id="telegramSection" class="section">
+                <form id="userIdForm">
+                    <div class="form-field">
+                        <label>🆔 رقم Telegram ID</label>
+                        <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric" autocomplete="off">
+                    </div>
+                    <div class="switch-link">
+                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToEmail()">📧 إيميل</a>
+                    </div>
+                    <button type="submit" id="sendCodeBtn" class="btn-primary">إرسال كود التحقق</button>
+                </form>
+                <div class="switch-link" style="margin-top:14px">
+                    <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
+                </div>
+                <div class="help-note">💡 لا تعرف رقمك؟ أرسل /id للبوت</div>
+            </div>
+
+            <!-- إيميل -->
+            <div id="emailSection" class="section">
+                <form id="emailForm">
+                    <div class="form-field">
+                        <label>📧 البريد الإلكتروني</label>
+                        <input type="email" id="loginEmail" placeholder="example@gmail.com" dir="ltr" autocomplete="email">
+                    </div>
+                    <div class="switch-link">
+                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
+                    </div>
+                    <button type="submit" id="sendCodeEmailBtn" class="btn-primary">إرسال كود التحقق</button>
+                </form>
+                <div class="switch-link" style="margin-top:14px">
+                    <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
+                </div>
+                <div class="help-note">📩 سيصلك كود التحقق على إيميلك</div>
+            </div>
+
+            <div id="error1" class="msg"></div>
+            <div class="security-hint">🔒 سيتم إرسال <b>كود مؤقت</b> للتحقق من هويتك</div>
+        </div>
+
+        <!-- ===== الخطوة 2: كود التحقق ===== -->
+        <div id="step2" class="step">
+            <div class="logo-section">
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
+                <h1>كود التحقق</h1>
+                <p>أدخل الكود المرسل لك</p>
+            </div>
+
+            <div class="timer-box">⏱️ <span id="countdown">2:00</span></div>
+
+            <form id="codeForm">
+                <div class="form-field code-field">
+                    <label>🔢 كود التحقق (6 أرقام)</label>
+                    <input type="text" id="verifyCode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button type="submit" id="verifyBtn" class="btn-primary">تأكيد الدخول</button>
+                <button type="button" class="btn-secondary" onclick="goBack()">← رجوع</button>
+            </form>
+
+            <div id="error2" class="msg"></div>
+            <div id="success2" class="msg"></div>
+            <div class="security-hint">🔐 لا تشارك الكود مع <b>أي شخص</b></div>
+        </div>
+
+        <!-- ===== الخطوة 3: المصادقة الثنائية ===== -->
+        <div id="step3" class="step">
+            <div class="logo-section">
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
+                <h1>المصادقة الثنائية</h1>
+                <p>أدخل الكود من Google Authenticator</p>
+            </div>
+
+            <form id="twoFAForm">
+                <div class="form-field code-field">
+                    <label>🔐 كود المصادقة (6 أرقام)</label>
+                    <input type="text" id="twoFACode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button type="submit" id="verify2FABtn" class="btn-primary">تأكيد الدخول</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع للبداية</button>
+            </form>
+
+            <div id="error3" class="msg"></div>
+            <div id="success3" class="msg"></div>
+            <div class="security-hint">⚡ الكود يتغير كل <b>30 ثانية</b></div>
+        </div>
+
+        <!-- ===== الخطوة 4: تسجيل حساب جديد ===== -->
+        <div id="step4" class="step">
+            <div class="logo-section">
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
+                <h1>حساب جديد</h1>
+                <p>أكمل بياناتك لإنشاء حسابك</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-field">
+                    <label>� الاسم</label>
+                    <input type="text" id="regName" placeholder="اسمك الكامل" autocomplete="name">
+                </div>
+                <div class="form-field">
+                    <label>📱 رقم الجوال</label>
+                    <input type="tel" id="regPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
+                </div>
+                <button type="submit" id="regSendCodeBtn" class="btn-primary">📲 إرسال كود SMS</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع لتسجيل الدخول</button>
+            </form>
+
+            <div id="error4" class="msg"></div>
+            <div class="security-hint">💬 سيتم إرسال كود SMS للتحقق من <b>رقمك</b></div>
+        </div>
+
+        <!-- ===== الخطوة 5: كود التحقق للتسجيل ===== -->
+        <div id="step5" class="step">
+            <div class="logo-section">
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
+                <h1>تأكيد الحساب</h1>
+                <p>أدخل الكود المرسل برسالة SMS</p>
+            </div>
+
+            <div class="timer-box">⏱️ <span id="regCountdown">2:00</span></div>
+
+            <form id="regCodeForm">
+                <div class="form-field code-field">
+                    <label>🔢 كود التحقق (6 أرقام)</label>
+                    <input type="text" id="regVerifyCode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button type="submit" id="regVerifyBtn" class="btn-primary">تأكيد وإنشاء الحساب 🎉</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep4()">← رجوع</button>
+            </form>
+
+            <div id="error5" class="msg"></div>
+            <div id="success5" class="msg"></div>
+            <div class="security-hint">🔐 لا تشارك الكود مع <b>أي شخص</b></div>
+        </div>
+
+    </div>
+
+<script>
+    var countdownInterval;
+    var regCountdownInterval;
+    var secondsLeft = 120;
+    var regSecondsLeft = 120;
+    var currentUserId = '';
+    var currentEmail = null;
+    var currentPhone = null;
+    var isRegistering = false;
+
+    function switchToPhone() {
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('phoneSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'أدخل رقم جوالك';
+        hideMsg('error1');
+    }
+
+    function switchToEmail() {
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('emailSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'أدخل بريدك الإلكتروني';
+        hideMsg('error1');
+    }
+
+    function switchToTelegram() {
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('telegramSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'سجّل دخولك للمتابعة';
+        hideMsg('error1');
+    }
+
+    function showErr(id, text) {
+        var el = document.getElementById(id);
+        el.textContent = '❌ ' + text;
+        el.className = 'msg err';
+    }
+    function showOk(id, text) {
+        var el = document.getElementById(id);
+        el.textContent = text;
+        el.className = 'msg ok';
+    }
+    function hideMsg(id) {
+        document.getElementById(id).className = 'msg';
+    }
+
+    // إرسال كود تلغرام
+    document.getElementById('userIdForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var userId = document.getElementById('userId').value.trim();
+        var btn = document.getElementById('sendCodeBtn');
+        if (!userId || !/^\d+$/.test(userId)) { showErr('error1', 'الرجاء إدخال رقم صحيح'); return; }
+        currentUserId = userId;
+        currentEmail = null;
+        currentPhone = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user_id: userId}) });
+            var data = await res.json();
+            if (data.success) { goToStep2(); }
+            else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+    });
+
+    // إرسال كود جوال SMS
+    document.getElementById('phoneForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var phone = document.getElementById('loginPhone').value.trim();
+        var btn = document.getElementById('sendCodePhoneBtn');
+        if (!phone || phone.length < 10) { showErr('error1', 'الرجاء إدخال رقم جوال صحيح'); return; }
+        currentPhone = phone;
+        currentEmail = null;
+        currentUserId = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/auth/send-code-phone', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone: phone}) });
+            var data = await res.json();
+            if (data.success) {
+                if (data.user_id) currentUserId = data.user_id;
+                isRegistering = false;
+                goToStep2();
+            } else { showErr('error1', data.message); }
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = '📲 إرسال كود SMS'; }
+    });
+
+    // إرسال كود إيميل
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        var btn = document.getElementById('sendCodeEmailBtn');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('error1', 'الرجاء إدخال بريد صحيح'); return; }
+        currentEmail = email;
+        currentUserId = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/auth/send-code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: email}) });
+            var data = await res.json();
+            if (data.success) { isRegistering = false; goToStep2(); }
+            else if (data.not_registered) {
+                // الحساب غير مسجل - عرض نموذج التسجيل
+                document.getElementById('regEmail').value = email;
+                showStep('step4');
+            }
+            else { showErr('error1', data.message); }
+            btn.disabled = false; btn.textContent = 'إرسال كود التحقق';
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+    });
+
+    function goToStep2() {
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        startCountdown();
+    }
+
+    // تأكيد الكود
+    document.getElementById('codeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('verifyCode').value.trim();
+        var btn = document.getElementById('verifyBtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error2', 'الرجاء إدخال 6 أرقام'); return; }
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error2'); hideMsg('success2');
+        try {
+            var url, body;
+            if (currentEmail) { url = '/api/auth/login'; body = {email: currentEmail, code: code}; }
+            else if (currentPhone) { url = '/api/auth/login-phone'; body = {phone: currentPhone, code: code, user_id: currentUserId || ''}; }
+            else { url = '/verify'; body = {user_id: currentUserId, code: code}; }
+            var res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            var data = await res.json();
+            if (data.success) {
+                if (data.requires_2fa) {
+                    showOk('success2', '🔐 مطلوب كود المصادقة الثنائية');
+                    clearInterval(countdownInterval);
+                    setTimeout(function() {
+                        document.getElementById('step2').classList.remove('active');
+                        document.getElementById('step3').classList.add('active');
+                    }, 800);
+                } else {
+                    showOk('success2', '✅ تم التحقق! جاري نقلك...');
+                    clearInterval(countdownInterval);
+                    setTimeout(function() { window.location.href = '/'; }, 1200);
+                }
+            } else { showErr('error2', data.message); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+        } catch(err) { showErr('error2', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+    });
+
+    // 2FA
+    document.getElementById('twoFAForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('twoFACode').value.trim();
+        var btn = document.getElementById('verify2FABtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error3', 'الرجاء إدخال 6 أرقام'); return; }
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error3'); hideMsg('success3');
+        try {
+            var res = await fetch('/verify_2fa_login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({totp_code: code}) });
+            var data = await res.json();
+            if (data.success) {
+                showOk('success3', '✅ تم التحقق! جاري نقلك...');
+                setTimeout(function() { window.location.href = '/'; }, 1200);
+            } else { showErr('error3', data.message || 'الكود غير صحيح'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+        } catch(err) { showErr('error3', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+    });
+
+    function startCountdown() {
+        secondsLeft = 120;
+        updateCountdown();
+        countdownInterval = setInterval(function() {
+            secondsLeft--;
+            updateCountdown();
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+                showErr('error2', '⏰ انتهت صلاحية الكود');
+                document.getElementById('verifyBtn').disabled = true;
+            }
+        }, 1000);
+    }
+    function updateCountdown() {
+        var m = Math.floor(secondsLeft / 60);
+        var s = secondsLeft % 60;
+        document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function goBack() {
+        clearInterval(countdownInterval);
+        document.getElementById('verifyCode').value = '';
+        hideMsg('error1'); hideMsg('error2'); hideMsg('success2');
+        document.getElementById('sendCodeBtn').disabled = false;
+        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodeEmailBtn').disabled = false;
+        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodePhoneBtn').disabled = false;
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
+        document.getElementById('verifyBtn').disabled = false;
+        document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
+        showStep('step1');
+    }
+
+    function goBackToStep1() {
+        document.getElementById('twoFACode').value = '';
+        document.getElementById('verifyCode').value = '';
+        hideMsg('error1'); hideMsg('error3'); hideMsg('success3'); hideMsg('error4');
+        document.getElementById('sendCodeBtn').disabled = false;
+        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodeEmailBtn').disabled = false;
+        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodePhoneBtn').disabled = false;
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
+        showStep('step1');
+    }
+
+    // أرقام فقط
+    ['userId','verifyCode','twoFACode','regVerifyCode'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    });
+
+    // عرض خطوة معينة
+    function showStep(stepId) {
+        document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById(stepId).classList.add('active');
+    }
+
+    // ===== نموذج التسجيل =====
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var name = document.getElementById('regName').value.trim();
+        var phone = document.getElementById('regPhone').value.trim();
+        var btn = document.getElementById('regSendCodeBtn');
+
+        if (!name) { showErr('error4', 'الرجاء إدخال الاسم'); return; }
+        if (!phone) { showErr('error4', 'الرجاء إدخال رقم الجوال'); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error4');
+        try {
+            var res = await fetch('/api/auth/register-send-code', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({name: name, phone: phone})
+            });
+            var data = await res.json();
+            if (data.success) {
+                isRegistering = true;
+                currentPhone = phone;
+                showStep('step5');
+                startRegCountdown();
+            } else {
+                showErr('error4', data.message);
+            }
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
+        } catch(err) {
+            showErr('error4', 'خطأ في الاتصال');
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
+        }
+    });
+
+    // تأكيد كود التسجيل
+    document.getElementById('regCodeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('regVerifyCode').value.trim();
+        var btn = document.getElementById('regVerifyBtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error5', 'الرجاء إدخال 6 أرقام'); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error5'); hideMsg('success5');
+        try {
+            var res = await fetch('/api/auth/register-verify', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({phone: currentPhone, code: code})
+            });
+            var data = await res.json();
+            if (data.success) {
+                clearInterval(regCountdownInterval);
+                showOk('success5', '🎉 تم إنشاء حسابك بنجاح! جاري نقلك...');
+                setTimeout(function() { window.location.href = '/'; }, 1500);
+            } else {
+                showErr('error5', data.message);
+                btn.disabled = false; btn.textContent = 'تأكيد وإنشاء الحساب 🎉';
+            }
+        } catch(err) {
+            showErr('error5', 'خطأ في الاتصال');
+            btn.disabled = false; btn.textContent = 'تأكيد وإنشاء الحساب 🎉';
+        }
+    });
+
+    // عداد التسجيل
+    function startRegCountdown() {
+        regSecondsLeft = 120;
+        updateRegCountdown();
+        regCountdownInterval = setInterval(function() {
+            regSecondsLeft--;
+            updateRegCountdown();
+            if (regSecondsLeft <= 0) {
+                clearInterval(regCountdownInterval);
+                showErr('error5', '⏰ انتهت صلاحية الكود');
+                document.getElementById('regVerifyBtn').disabled = true;
+            }
+        }, 1000);
+    }
+    function updateRegCountdown() {
+        var m = Math.floor(regSecondsLeft / 60);
+        var s = regSecondsLeft % 60;
+        document.getElementById('regCountdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function goBackToStep4() {
+        clearInterval(regCountdownInterval);
+        document.getElementById('regVerifyCode').value = '';
+        hideMsg('error5'); hideMsg('success5');
+        document.getElementById('regVerifyBtn').disabled = false;
+        document.getElementById('regVerifyBtn').textContent = 'تأكيد وإنشاء الحساب 🎉';
+        showStep('step4');
+    }
+
+    function goToRegister() {
+        hideMsg('error1');
+        showStep('step4');
+    }
+</script>
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 900 } },
+                    color: { value: ['#6c5ce7', '#00ff88', '#a29bfe'] },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: true, anim: { enable: true, speed: 0.8, opacity_min: 0.1 } },
+                    size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.5 } },
+                    line_linked: { enable: true, distance: 150, color: '#6c5ce7', opacity: 0.25, width: 1 },
+                    move: { enable: true, speed: 1.5, direction: 'none', random: true, out_mode: 'out' }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'grab' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    },
+                    modes: {
+                        grab: { distance: 200, line_linked: { opacity: 0.5 } },
+                        push: { particles_nb: 3 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+    });
+    </script>
+    {% include 'partials/pwa_install.html' %}
+</body>
+</html>
