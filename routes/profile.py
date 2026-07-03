@@ -1129,7 +1129,11 @@ def link_telegram_send_code():
             ).limit(1).get()
             for doc in existing:
                 if doc.id != user_id:
-                    return jsonify({'success': False, 'message': 'هذا الآيدي مرتبط بحساب آخر'}), 400
+                    other_data = doc.to_dict()
+                    # السماح بالربط إذا كان الحساب الآخر مُنشأ تلقائياً من البوت فقط (بدون جوال)
+                    is_bot_only = (doc.id == telegram_id and not other_data.get('phone'))
+                    if not is_bot_only:
+                        return jsonify({'success': False, 'message': 'هذا الآيدي مرتبط بحساب آخر'}), 400
         except:
             pass
         
@@ -1198,7 +1202,25 @@ def link_telegram_verify():
             return jsonify({'success': False, 'message': 'الكود غير صحيح'}), 400
         
         telegram_id = stored['telegram_id']
-        
+
+        # دمج رصيد الحساب البوتي إذا كان موجوداً (حساب أُنشئ تلقائياً عند /start)
+        try:
+            bot_doc_ref = db.collection('users').document(telegram_id)
+            bot_doc = bot_doc_ref.get()
+            if bot_doc.exists and telegram_id != user_id:
+                bot_data = bot_doc.to_dict()
+                # نقل الرصيد فقط إذا لم يكن لديه جوال (حساب بوت فقط)
+                if not bot_data.get('phone'):
+                    bot_balance = float(bot_data.get('balance', 0.0))
+                    if bot_balance > 0:
+                        current_doc = db.collection('users').document(user_id).get()
+                        current_balance = float(current_doc.to_dict().get('balance', 0.0)) if current_doc.exists else 0.0
+                        db.collection('users').document(user_id).update({'balance': current_balance + bot_balance})
+                    # إزالة telegram_id من الحساب البوتي لتجنب التعارض
+                    bot_doc_ref.update({'telegram_id': None, 'telegram_started': False, 'merged_to': user_id})
+        except Exception as merge_err:
+            logger.warning(f"تحذير: فشل دمج الحساب البوتي: {merge_err}")
+
         # ربط تيليجرام بالحساب الحالي
         db.collection('users').document(user_id).update({
             'telegram_id': telegram_id,
