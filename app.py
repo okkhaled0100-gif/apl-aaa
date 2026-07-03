@@ -1523,10 +1523,7 @@ _محاولة اختراق واضحة!_
                         pass
                 else:
                     print("✅ Hash تم التحقق منه بنجاح")
-                        hash_verified = True
-                except:
-                    pass
-                
+
         print(f"📋 Parsed: order_id={order_id}, trans_id={trans_id}, status={status}, amount={amount}")
         
         # التحقق من وجود order_id
