@@ -363,7 +363,7 @@ def add_security_headers(response):
         # الصور
         "img-src 'self' data: https: blob:",
         # الاتصالات (API)
-        "connect-src 'self' https://api.telegram.org",
+        "connect-src 'self' https://api.telegram.org https://api.edfapay.com https://cdn.jsdelivr.net",
         # منع التضمين في iframe (حماية Clickjacking)
         "frame-ancestors 'none'",
         # قاعدة URL
