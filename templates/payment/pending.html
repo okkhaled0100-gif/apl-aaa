@@ -69,14 +69,37 @@
         <button class="btn" onclick="window.close(); setTimeout(function(){ location.href='about:blank'; }, 100);">إغلاق الصفحة</button>
     </div>
     <script>
-        setTimeout(function() {
-            var orderId = '{{ order_id }}';
-            if (orderId) {
-                window.location.reload();
+        var orderId = '{{ order_id }}';
+        var checkCount = 0;
+        var maxChecks = 20;
+
+        function checkStatus() {
+            if (!orderId || checkCount >= maxChecks) {
+                document.getElementById('status-msg').innerHTML = '<p>⚠️ انتهى وقت التحقق - تحقق من البوت</p>';
+                return;
             }
-        }, 3000);
+            checkCount++;
+            fetch('/api/payment/check-status?order_id=' + encodeURIComponent(orderId))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.status === 'paid') {
+                        document.getElementById('status-msg').innerHTML = '<p>✅ تم الدفع بنجاح!</p>';
+                        setTimeout(function(){ window.location.reload(); }, 1500);
+                    } else if (data.status === 'failed') {
+                        document.getElementById('status-msg').innerHTML = '<p>❌ ' + (data.message || 'فشلت العملية') + '</p>';
+                    } else {
+                        setTimeout(checkStatus, 3000);
+                    }
+                })
+                .catch(function() { setTimeout(checkStatus, 3000); });
+        }
+
+        if (orderId) { setTimeout(checkStatus, 3000); }
+
         setTimeout(function() {
-            document.getElementById('status-msg').innerHTML = '<p> تم إرسال طلبك - تحقق من البوت</p>';
+            if (checkCount < maxChecks) {
+                document.getElementById('status-msg').innerHTML = '<p>📨 تم إرسال طلبك - تحقق من البوت</p>';
+            }
         }, 10000);
     </script>
 </body>
