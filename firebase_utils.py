@@ -112,6 +112,29 @@ def get_user_data(user_id):
         return {}
 
 # === دوال الرصيد ===
+
+def get_real_user_id(telegram_id):
+    """
+    إذا كان telegram_id مرتبطاً بحساب مسجل برقم الجوال (SMS)،
+    يُعيد معرف الحساب الحقيقي بدلاً من معرف البوت.
+    """
+    try:
+        if not db:
+            return str(telegram_id)
+        uid = str(telegram_id)
+        results = db.collection('users').where(
+            filter=FieldFilter('telegram_id', '==', uid)
+        ).limit(2).get()
+        for doc in results:
+            doc_data = doc.to_dict()
+            # الحساب الحقيقي: له جوال ومعرفه يختلف عن telegram_id
+            if doc.id != uid and doc_data.get('phone'):
+                return doc.id
+        return uid
+    except Exception as e:
+        print(f"⚠️ خطأ في get_real_user_id: {e}")
+        return str(telegram_id)
+
 def get_balance(user_id):
     """جلب رصيد المستخدم من Firebase"""
     try:

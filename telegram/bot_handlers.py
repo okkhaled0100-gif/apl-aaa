@@ -44,7 +44,7 @@ except ImportError:
 from firebase_utils import (
     get_balance, add_balance, get_charge_key,
     use_charge_key, create_charge_key, get_all_products_for_store,
-    get_all_charge_keys
+    get_all_charge_keys, get_real_user_id
 )
 
 import telebot
@@ -218,8 +218,9 @@ def send_welcome(message):
                     # إرسال إشعار لقناة التفاعلات
                     send_activity_notification('register', user_id, username, {})
                 else:
-                    # جلب الرصيد الحالي
-                    balance = user_doc.to_dict().get('balance', 0.0)
+                    # جلب الرصيد من الحساب الحقيقي (SMS أو بوت)
+                    real_id = get_real_user_id(user_id)
+                    balance = get_balance(real_id)
                     update_data = {
                         'name': user_name,
                         'username': username,
@@ -315,15 +316,9 @@ def handle_back_to_main(call):
         user_id = call.from_user.id
         user_name = call.from_user.first_name or "صديقي"
         
-        # جلب الرصيد
-        balance = 0.0
-        if db:
-            try:
-                user_doc = db.collection('users').document(str(user_id)).get()
-                if user_doc.exists:
-                    balance = user_doc.to_dict().get('balance', 0.0)
-            except:
-                pass
+        # جلب الرصيد من الحساب الحقيقي
+        real_user_id = get_real_user_id(str(user_id))
+        balance = get_balance(real_user_id)
         
         # إنشاء الأزرار
         markup = types.InlineKeyboardMarkup(row_width=2)
@@ -1220,21 +1215,23 @@ def handle_user_state_message(message):
             
             # شحن الرصيد
             amount = key_data.get('amount', 0)
-            add_balance(user_id, amount)
+            # تحديد الحساب الحقيقي (SMS أو بوت)
+            real_user_id = get_real_user_id(user_id)
+            add_balance(real_user_id, amount)
             
             # ✅ تسجيل الشحنة في charge_history للتجميد
             try:
                 db.collection('charge_history').add({
-                    'user_id': str(user_id),
+                    'user_id': str(real_user_id),
                     'amount': float(amount),
                     'method': 'telegram_key',
                     'key_code': key_code,
                     'timestamp': firestore.SERVER_TIMESTAMP
                 })
-                print(f"✅ تم تسجيل شحنة التليجرام في charge_history: {amount} ريال للمستخدم {user_id}")
+                print(f"✅ تم تسجيل شحنة التليجرام في charge_history: {amount} ريال للمستخدم {real_user_id}")
                 
                 # إشعار المالك بالشحن
-                notify_new_charge(user_id, amount, method='telegram_key', username=user_name)
+                notify_new_charge(real_user_id, amount, method='telegram_key', username=user_name)
             except Exception as e:
                 print(f"⚠️ خطأ في تسجيل charge_history: {e}")
             
@@ -1245,7 +1242,7 @@ def handle_user_state_message(message):
             bot.reply_to(message,
                 "✅ *تم شحن رصيدك بنجاح!*\n\n"
                 f"💰 المبلغ المضاف: {amount} ريال\n"
-                f"💵 رصيدك الحالي: {get_balance(user_id)} ريال\n\n"
+                f"💵 رصيدك الحالي: {get_balance(real_user_id)} ريال\n\n"
                 "⏳ *ملاحظة:* المبلغ سيكون متاحاً للسحب العادي (5.5%) بعد 72 ساعة.\n"
                 "⚡ يمكنك السحب الفوري الآن برسوم 8%.\n"
                 "🚀 التحويل خلال 1-5 ساعات بعد الموافقة!\n\n"
@@ -1254,14 +1251,14 @@ def handle_user_state_message(message):
             )
             
             # إرسال إشعار لقناة التفاعلات
-            send_activity_notification('charge', user_id, user_name, {'amount': amount})
+            send_activity_notification('charge', real_user_id, user_name, {'amount': amount})
             
             # إشعار المالك
             try:
                 bot.send_message(ADMIN_ID,
                     "🔔 *تم استخدام مفتاح شحن*\n\n"
                     f"👤 المستخدم: {user_name}\n"
-                    f"🆔 الآيدي: {user_id}\n"
+                    f"🆔 الآيدي: {real_user_id}\n"
                     f"💰 المبلغ: {amount} ريال\n"
                     f"🔑 المفتاح: `{key_code}`",
                     parse_mode="Markdown"
