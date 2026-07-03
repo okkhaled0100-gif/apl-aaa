@@ -6,8 +6,6 @@
 جميع دوال التعامل مع قاعدة بيانات Firebase
 """
 
-import os
-import json
 import time
 import uuid
 import logging
@@ -21,7 +19,7 @@ except ImportError:
     firestore = None
 
 # استيراد من extensions لتجنب circular imports
-from extensions import db, FIREBASE_AVAILABLE
+from extensions import db
 
 # محاولة استيراد FieldFilter للنسخ الجديدة
 USE_FIELD_FILTER = False

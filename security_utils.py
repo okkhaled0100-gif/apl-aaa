@@ -9,7 +9,7 @@
 import os
 import logging
 from functools import wraps
-from flask import session, jsonify, abort, request, redirect, url_for
+from flask import session, jsonify, abort, request, redirect
 from google.cloud import firestore
 
 # تحديد logger
@@ -236,7 +236,6 @@ def setup_rate_limiting(app, limiter):
     يجب استدعاء هذا في app.py
     """
     # سيتم استخدامه مع @limiter.limit()
-    pass
 
 
 # === 7. تسجيل الأنشطة الأمنية ===

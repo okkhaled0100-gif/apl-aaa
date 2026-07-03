@@ -5,17 +5,12 @@
 """
 
 import os
-import html
-import logging
 import telebot
-from telebot import types
-from flask import Flask, request, render_template_string, render_template, redirect, session, jsonify, url_for, send_from_directory
-import json
+from flask import Flask, request, render_template, session, jsonify, send_from_directory
 import random
 import hashlib
 import time
 import uuid
-import requests
 from datetime import datetime
 
 # استيراد FieldFilter للنسخ الجديدة من Firestore
@@ -27,45 +22,26 @@ except ImportError:
 
 # === استيراد الملفات المفصولة ===
 from extensions import (
-    db, FIREBASE_AVAILABLE, logger,
-    ADMIN_ID, TOKEN, SITE_URL, SECRET_KEY,
-    EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD,
-    verification_codes, user_states, display_settings,
+    db, logger, ADMIN_ID,
+    TOKEN, SITE_URL, SECRET_KEY, EDFAPAY_MERCHANT_ID,
+    EDFAPAY_PASSWORD, verification_codes,
     bot, BOT_ACTIVE, BOT_USERNAME
 )
 from config import (
     EDFAPAY_API_URL, SESSION_CONFIG, IS_PRODUCTION,
-    RATE_LIMIT_DEFAULT, DEFAULT_CATEGORIES, CART_EXPIRY_HOURS,
-    CONTACT_BOT_URL, CONTACT_WHATSAPP
+    RATE_LIMIT_DEFAULT, DEFAULT_CATEGORIES, CONTACT_BOT_URL,
+    CONTACT_WHATSAPP
 )
 from firebase_utils import (
-    query_where, get_balance, add_balance, deduct_balance,
-    get_products, get_product_by_id, add_product, update_product, mark_product_sold, delete_product,
-    get_categories, add_category, update_category, delete_category, get_category_by_id,
-    get_charge_key, use_charge_key, create_charge_key,
-    get_user_cart, save_user_cart, clear_user_cart, get_all_carts,
-    get_all_products_for_store, get_sold_products, get_all_users, get_all_charge_keys,
-    get_active_orders, get_products_by_category, count_products_in_category,
-    save_pending_payment, get_pending_payment, update_pending_payment, add_purchase_history,
-    get_header_settings, get_collection_data, get_collection_list,
-    add_balance_log, get_balance_logs, get_all_balance_logs,
-    get_user_purchases, get_all_purchases
+    query_where, get_balance, add_balance, add_product,
+    get_categories, get_charge_key, use_charge_key, get_user_cart, get_all_products_for_store, get_header_settings
 )
-from payment import (
-    calculate_hash, create_payment_payload,
-    create_edfapay_invoice as create_edfapay_invoice_util,
-    register_callback_url, check_callback_url
-)
-from utils import sanitize, regenerate_session, generate_code, validate_phone
+from utils import sanitize, regenerate_session
 
 # استيراد نظام الإشعارات
 from notifications import (
-    notify_owner, notify_all_admins, notify_new_charge,
-    notify_withdrawal_request, notify_new_purchase, notify_new_order,
-    notify_new_user, notify_product_sold,
-    notify_invoice_created, notify_payment_pending,
-    notify_payment_success, notify_payment_failed, notify_recharge_request,
-    send_order_email
+    notify_new_charge, notify_payment_pending, notify_payment_success,
+    notify_payment_failed, send_order_email
 )
 
 # استيراد أدوات التشفير
@@ -88,7 +64,6 @@ from routes.profile import profile_bp
 from routes.recharge import recharge_bp
 
 # استيراد معالجات البوت
-from telegram import bot_handlers
 
 # استيراد security middleware
 from security_middleware import (
@@ -409,7 +384,7 @@ def load_all_data_from_firebase():
         if categories:
             print(f"✅ تم جلب {len(categories)} قسم")
         else:
-            print(f"ℹ️ لا توجد أقسام - سيتم استخدام الأقسام الافتراضية")
+            print("ℹ️ لا توجد أقسام - سيتم استخدام الأقسام الافتراضية")
         
         # تحميل إعدادات العرض
         try:
@@ -565,8 +540,8 @@ def api_send_code():
         try:
             user = bot.get_chat(int(user_id))
             user_name = user.first_name or "مستخدم"
-        except Exception as e:
-            return jsonify({'success': False, 'message': f'لم نتمكن من العثور على هذا الآيدي في Telegram'}), 404
+        except Exception:
+            return jsonify({'success': False, 'message': 'لم نتمكن من العثور على هذا الآيدي في Telegram'}), 404
         
         # توليد كود عشوائي 6 أرقام
         code = str(random.randint(100000, 999999))
@@ -599,7 +574,7 @@ def api_send_code():
             
             return jsonify({
                 'success': True, 
-                'message': f'✅ تم إرسال كود التحقق إلى Telegram',
+                'message': '✅ تم إرسال كود التحقق إلى Telegram',
                 'user_name': user_name
             })
         
@@ -608,7 +583,7 @@ def api_send_code():
             # يمكن للمستخدم محاولة إدخال الكود حتى لو لم يتم الإرسال
             return jsonify({
                 'success': True,
-                'message': f'✅ تم توليد الكود (قد لا يكون وصل الرسالة)',
+                'message': '✅ تم توليد الكود (قد لا يكون وصل الرسالة)',
                 'user_name': user_name
             })
     
@@ -751,7 +726,7 @@ def verify_login():
             # حذف الكود من الذاكرة عند المحاولة الثالثة الفاشلة
             if user_id in verification_codes:
                 del verification_codes[user_id]
-            log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة 3/3')
+            log_security_event('CODE_WRONG_ATTEMPT', user_id, 'محاولة 3/3')
             return {
                 'success': False, 
                 'message': f'{error_msg}\n\n⏰ انتهت محاولاتك\n📲 اطلب كود جديد (بعد 1 دقيقة)',
@@ -981,7 +956,7 @@ def index():
     except:
         # الفئات الافتراضية 3×3
         categories = DEFAULT_CATEGORIES
-        print(f"✅ استخدام الفئات الافتراضية")
+        print("✅ استخدام الفئات الافتراضية")
     
     # 3. جلب عدد منتجات السلة
     cart_count = 0
@@ -1059,7 +1034,6 @@ def charge_balance_api():
     if db:
         try:
             from datetime import datetime
-            import time as time_module
             db.collection('charge_history').add({
                 'user_id': user_id,
                 'amount': amount,
@@ -1130,7 +1104,7 @@ def buy_item():
             print(f"✅ مشتري موثق من الجلسة: {buyer_id}")
         else:
             # 2️⃣ لم يسجل دخول - نرفض الطلب
-            print(f"❌ محاولة شراء بدون تسجيل دخول!")
+            print("❌ محاولة شراء بدون تسجيل دخول!")
             return {'status': 'error', 'message': 'يجب تسجيل الدخول أولاً!'}
         
         print(f"🛒 محاولة شراء - item_id: {item_id}, buyer_id: {buyer_id}")
@@ -1255,12 +1229,12 @@ def buy_item():
             try:
                 bot.send_message(
                     int(buyer_id),
-                    f"✅ تم الشراء بنجاح!\n\n"
+                    "✅ تم الشراء بنجاح!\n\n"
                     f"📦 المنتج: {item.get('item_name')}\n"
                     f"💰 السعر: {price} ريال\n"
                     f"🆔 رقم الطلب: #{order_id}\n\n"
                     f"🔐 بيانات الاشتراك:\n{hidden_info}\n\n"
-                    f"⚠️ احفظ هذه البيانات في مكان آمن!"
+                    "⚠️ احفظ هذه البيانات في مكان آمن!"
                 )
                 message_sent = True
                 print(f"✅ تم إرسال بيانات المنتج للمشتري {buyer_id}")
@@ -1268,11 +1242,11 @@ def buy_item():
                 # إشعار للمالك
                 bot.send_message(
                     ADMIN_ID,
-                    f"🔔 عملية بيع جديدة!\n"
+                    "🔔 عملية بيع جديدة!\n"
                     f"📦 المنتج: {item.get('item_name')}\n"
                     f"👤 المشتري: {buyer_name} ({buyer_id})\n"
                     f"💰 السعر: {price} ريال\n"
-                    f"✅ تم إرسال البيانات للمشتري"
+                    "✅ تم إرسال البيانات للمشتري"
                 )
             except Exception as e:
                 print(f"⚠️ فشل إرسال الرسالة للمشتري {buyer_id}: {e}")
@@ -1280,7 +1254,7 @@ def buy_item():
                 try:
                     bot.send_message(
                         ADMIN_ID,
-                        f"⚠️ تنبيه: فشل إرسال بيانات المنتج!\n"
+                        "⚠️ تنبيه: فشل إرسال بيانات المنتج!\n"
                         f"📦 المنتج: {item.get('item_name')}\n"
                         f"👤 المشتري: {buyer_name} ({buyer_id})\n"
                         f"🔐 البيانات: {hidden_info}\n"
@@ -1293,12 +1267,12 @@ def buy_item():
             try:
                 bot.send_message(
                     int(buyer_id),
-                    f"⏳ تم استلام طلبك!\n\n"
+                    "⏳ تم استلام طلبك!\n\n"
                     f"📦 المنتج: {item.get('item_name')}\n"
                     f"💰 السعر: {price} ريال\n"
                     f"🆔 رقم الطلب: #{order_id}\n\n"
-                    f"👨‍💼 طلبك بانتظار التنفيذ من قبل الإدارة\n"
-                    f"📲 سيتم إرسال البيانات لك فور تنفيذ الطلب"
+                    "👨‍💼 طلبك بانتظار التنفيذ من قبل الإدارة\n"
+                    "📲 سيتم إرسال البيانات لك فور تنفيذ الطلب"
                 )
                 message_sent = True
                 print(f"✅ تم إشعار المشتري {buyer_id} بانتظار التنفيذ")
@@ -1316,16 +1290,16 @@ def buy_item():
             # البيانات تظهر فقط للمشرف الذي يستلم الطلب
             hidden_buyer_details = ""
             if buyer_details:
-                hidden_buyer_details = f"\n\n📝 بيانات المشتري: 🔒 ******** (تظهر عند الاستلام)"
+                hidden_buyer_details = "\n\n📝 بيانات المشتري: 🔒 ******** (تظهر عند الاستلام)"
             
             admin_message = (
-                f"🆕 طلب جديد بانتظار التنفيذ!\n\n"
+                "🆕 طلب جديد بانتظار التنفيذ!\n\n"
                 f"🆔 رقم الطلب: #{order_id}\n"
                 f"📦 المنتج: {item.get('item_name')}\n"
                 f"👤 المشتري: {buyer_name}\n"
                 f"💰 السعر: {price} ريال"
                 f"{hidden_buyer_details}\n\n"
-                f"👇 اضغط لاستلام وعرض التفاصيل"
+                "👇 اضغط لاستلام وعرض التفاصيل"
             )
             
             # إرسال للمالك الرئيسي
@@ -1379,7 +1353,7 @@ def merchant_webhook(merchant_id):
         data = request.json or request.form.to_dict()
         if data.get('update_id') or data.get('message'):
             # هذه رسالة من Telegram وليست من EdfaPay
-            print(f"⚠️ تم تجاهل رسالة Telegram على merchant_webhook")
+            print("⚠️ تم تجاهل رسالة Telegram على merchant_webhook")
             return jsonify({'status': 'ok', 'message': 'Telegram message ignored'}), 200
     return process_edfapay_callback(request, f"merchant_webhook/{merchant_id}")
 
@@ -1555,7 +1529,7 @@ _محاولة اختراق واضحة!_
                         pass
                     return jsonify({'status': 'error', 'message': 'Invalid signature'}), 403
                 else:
-                    print(f"✅ Hash تم التحقق منه بنجاح")
+                    print("✅ Hash تم التحقق منه بنجاح")
         
         print(f"📋 Parsed: order_id={order_id}, trans_id={trans_id}, status={status}, amount={amount}")
         
@@ -1591,7 +1565,7 @@ _محاولة اختراق واضحة!_
                     doc = db.collection('pending_payments').document(order_id).get()
                     if doc.exists:
                         payment_data = doc.to_dict()
-                        print(f"📥 تم جلب الطلب من Firebase")
+                        print("📥 تم جلب الطلب من Firebase")
                 except Exception as e:
                     print(f"⚠️ خطأ في البحث في Firebase: {e}")
             
@@ -1607,7 +1581,7 @@ _محاولة اختراق واضحة!_
                 invoice_id = payment_data.get('invoice_id', '')
                 
                 if not user_id:
-                    print(f"❌ لا يوجد user_id في الطلب")
+                    print("❌ لا يوجد user_id في الطلب")
                     return jsonify({'status': 'error', 'message': 'Missing user_id'}), 400
                 
                 # ✅ إضافة الرصيد
@@ -1628,7 +1602,7 @@ _محاولة اختراق واضحة!_
                         'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
                         'type': 'payment'
                     })
-                    print(f"✅ تم تسجيل الشحنة في charge_history")
+                    print("✅ تم تسجيل الشحنة في charge_history")
                 except Exception as e:
                     print(f"⚠️ خطأ في تسجيل charge_history: {e}")
                 
@@ -1685,11 +1659,11 @@ _محاولة اختراق واضحة!_
                         # رسالة للتاجر (بدون رقم العميل)
                         bot.send_message(
                             int(user_id),
-                            f"💰 *تم استلام دفعة جديدة!*\n\n"
+                            "💰 *تم استلام دفعة جديدة!*\n\n"
                             f"🧾 رقم الفاتورة: `{invoice_id}`\n"
                             f"💵 المبلغ: {pay_amount} ريال\n\n"
                             f"💳 رصيدك الحالي: {new_balance} ريال\n\n"
-                            f"✅ تم إضافة المبلغ لرصيدك",
+                            "✅ تم إضافة المبلغ لرصيدك",
                             parse_mode="Markdown"
                         )
                     except Exception as e:
@@ -1717,11 +1691,11 @@ _محاولة اختراق واضحة!_
                         new_balance = get_balance(user_id)
                         bot.send_message(
                             int(user_id),
-                            f"✅ *تم شحن رصيدك بنجاح!*\n\n"
+                            "✅ *تم شحن رصيدك بنجاح!*\n\n"
                             f"💰 المبلغ المضاف: {pay_amount} ريال\n"
                             f"💵 رصيدك الحالي: {new_balance} ريال\n\n"
                             f"📋 رقم العملية: `{order_id}`\n\n"
-                            f"🎉 استمتع بالتسوق!",
+                            "🎉 استمتع بالتسوق!",
                             parse_mode="Markdown"
                         )
                     except Exception as e:

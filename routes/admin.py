@@ -12,13 +12,13 @@ import random
 import uuid
 import os
 import logging
-from notifications import notify_owner, notify_all_admins, is_admin_or_owner
+from notifications import notify_owner
 from encryption_utils import encrypt_data, decrypt_data
 from invoice_generator import send_withdrawal_invoice_email
 
 # 🔒 استيراد نظام Security Logging
 try:
-    from security_middleware import log_admin_login, log_security_event, SecurityEvent
+    from security_middleware import log_admin_login
     SECURITY_LOGGING = True
 except ImportError:
     SECURITY_LOGGING = False
@@ -1960,7 +1960,7 @@ def api_complete_order():
         
         if bot and buyer_id:
             try:
-                msg = f"✅ تم إكمال طلبك!\n\n"
+                msg = "✅ تم إكمال طلبك!\n\n"
                 msg += f"🆔 رقم الطلب: #{order_id}\n"
                 msg += f"📦 المنتج: {order_data.get('item_name', '-')}\n"
                 if order_data.get('hidden_data'):
@@ -2134,7 +2134,7 @@ def api_add_manager():
             
             # إشعار المالك
             notify_owner(
-                f"✅ <b>تمت إضافة مشرف جديد</b>\n\n"
+                "✅ <b>تمت إضافة مشرف جديد</b>\n\n"
                 f"👨‍💼 <b>الاسم:</b> {fetched_name}\n"
                 f"🆔 <b>ID:</b> <code>{telegram_id}</code>\n"
                 f"📱 <b>Username:</b> @{telegram_username or 'غير متوفر'}\n"
@@ -2175,7 +2175,7 @@ def api_delete_manager():
         
         # إشعار المالك
         notify_owner(
-            f"🗑️ <b>تم حذف مشرف</b>\n\n"
+            "🗑️ <b>تم حذف مشرف</b>\n\n"
             f"👨‍💼 <b>الاسم:</b> {admin_info.get('name', 'غير محدد')}\n"
             f"🆔 <b>ID:</b> <code>{admin_info.get('telegram_id', '-')}</code>"
         )
@@ -2537,10 +2537,10 @@ def reset_customer_phone():
                 try:
                     bot.send_message(
                         int(user_id),
-                        f"📱 *تم تغيير رقم جوالك*\n\n"
+                        "📱 *تم تغيير رقم جوالك*\n\n"
                         f"الرقم القديم: `{old_phone}`\n"
                         f"الرقم الجديد: `{new_phone}`\n\n"
-                        f"تم التغيير بواسطة الإدارة.",
+                        "تم التغيير بواسطة الإدارة.",
                         parse_mode='Markdown'
                     )
                 except:
@@ -2568,7 +2568,7 @@ def api_clear_cache():
         return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
     
     try:
-        from firebase_utils import clear_cache, get_cache_status
+        from firebase_utils import clear_cache
         
         # مسح كل الكاش
         clear_cache()

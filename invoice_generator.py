@@ -4,7 +4,6 @@
 يُنشئ فاتورة احترافية عند الموافقة على طلب سحب ويرسلها بالبريد الإلكتروني
 """
 
-import io
 import os
 import logging
 import threading

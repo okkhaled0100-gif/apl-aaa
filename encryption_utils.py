@@ -4,11 +4,7 @@
 """
 
 import os
-import base64
-import sys
 from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # مفتاح التشفير من Environment Variables
 ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY')
@@ -69,7 +65,7 @@ def encrypt_data(data: str) -> str:
     if not fernet:
         # ⚠️ تسجيل تحذير عند حفظ بيانات بدون تشفير
         if IS_PRODUCTION:
-            print(f"⚠️ تحذير: تم حفظ بيانات حساسة بدون تشفير!")
+            print("⚠️ تحذير: تم حفظ بيانات حساسة بدون تشفير!")
         return data
     
     try:

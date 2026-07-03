@@ -4,12 +4,11 @@ API Routes - جميع endpoints الـ API
 from flask import Blueprint, request, jsonify, session
 from firebase_utils import (
     get_collection_list, get_collection_data,
-    get_balance, get_user_cart, get_products_by_category,
-    get_categories
+    get_balance, get_products_by_category, get_categories
 )
 from security_utils import (
     require_session_user, validate_collection_name,
-    sanitize_error_message, require_session_user
+    sanitize_error_message
 )
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')

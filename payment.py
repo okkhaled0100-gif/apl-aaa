@@ -142,7 +142,7 @@ def create_wallet_payment(user_id, amount):
             return {'success': False, 'error': error_msg}
             
     except requests.exceptions.Timeout:
-        print(f"❌ Wallet Pay Timeout")
+        print("❌ Wallet Pay Timeout")
         return {'success': False, 'error': 'انتهى وقت الاتصال - حاول مرة أخرى'}
     except requests.exceptions.RequestException as e:
         print(f"❌ Wallet Pay Request Error: {e}")
@@ -179,7 +179,7 @@ def register_callback_url():
             print(f"✅ تم تسجيل Callback URL: {callback_url}")
             return True
         else:
-            print(f"❌ فشل تسجيل Callback URL")
+            print("❌ فشل تسجيل Callback URL")
             return False
     except Exception as e:
         print(f"❌ خطأ في تسجيل Callback: {e}")

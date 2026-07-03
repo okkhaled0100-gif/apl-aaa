@@ -114,7 +114,7 @@ def init_bot():
                 print(f"✅ البوت: متصل بنجاح (@{BOT_USERNAME})")
             except:
                 BOT_USERNAME = ""
-                print(f"✅ البوت: متصل بنجاح")
+                print("✅ البوت: متصل بنجاح")
         except Exception as e:
             BOT_ACTIVE = False
             BOT_USERNAME = ""

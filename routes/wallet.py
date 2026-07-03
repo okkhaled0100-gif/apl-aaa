@@ -8,12 +8,11 @@ import time
 import hashlib
 import requests
 
-from extensions import db, FIREBASE_AVAILABLE
+from extensions import db
 from firebase_utils import get_balance, add_balance, get_charge_key, use_charge_key, query_where
 from google.cloud import firestore
 from security_utils import (
-    require_session_user, get_session_user_id, checkout_with_transaction,
-    log_security_event, sanitize_error_message
+    require_session_user, get_session_user_id, log_security_event
 )
 
 # استيراد دوال التشفير
@@ -257,7 +256,7 @@ def wallet_pay():
             return jsonify({'success': False, 'message': error_msg})
             
     except requests.exceptions.Timeout:
-        print(f"❌ Wallet Pay Timeout")
+        print("❌ Wallet Pay Timeout")
         return jsonify({'success': False, 'message': 'انتهى وقت الاتصال - حاول مرة أخرى'})
     except requests.exceptions.RequestException as e:
         print(f"❌ Wallet Pay Request Error: {e}")
@@ -289,7 +288,6 @@ def my_purchases_page():
                 except Exception as e:
                     print(f"⚠️ خطأ في فك تشفير hidden_data: {e}")
                     # إذا فشل فك التشفير، ربما البيانات غير مشفرة أصلاً
-                    pass
             
             if data.get('created_at'):
                 try:

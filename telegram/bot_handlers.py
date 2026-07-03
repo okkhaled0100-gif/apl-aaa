@@ -10,9 +10,8 @@ import hashlib
 import uuid
 from telebot import types
 from extensions import (
-    bot, db, user_states, verification_codes,
-    ADMIN_ID, logger, BOT_ACTIVE, SITE_URL,
-    EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD
+    bot, db, user_states, ADMIN_ID,
+    SITE_URL, EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD
 )
 from config import CONTACT_WHATSAPP
 
@@ -43,14 +42,11 @@ except ImportError:
 
 # استيراد دوال Firebase
 from firebase_utils import (
-    get_balance, add_balance, deduct_balance,
-    get_categories, get_products, get_product_by_id,
-    get_charge_key, use_charge_key, create_charge_key,
-    save_pending_payment, get_pending_payment,
-    get_all_products_for_store, get_all_charge_keys
+    get_balance, add_balance, get_charge_key,
+    use_charge_key, create_charge_key, get_all_products_for_store,
+    get_all_charge_keys
 )
 
-from utils import generate_code
 import telebot
 
 # استيراد نظام الإشعارات
@@ -217,7 +213,7 @@ def send_welcome(message):
                     if profile_photo:
                         user_data['profile_photo'] = profile_photo
                     user_ref.set(user_data)
-                    print(f"✅ مستخدم جديد تم إنشاؤه")
+                    print("✅ مستخدم جديد تم إنشاؤه")
                     
                     # إرسال إشعار لقناة التفاعلات
                     send_activity_notification('register', user_id, username, {})
@@ -233,7 +229,7 @@ def send_welcome(message):
                     if profile_photo:
                         update_data['profile_photo'] = profile_photo
                     user_ref.update(update_data)
-                    print(f"✅ مستخدم موجود تم تحديثه")
+                    print("✅ مستخدم موجود تم تحديثه")
             except Exception as e:
                 print(f"⚠️ خطأ في Firebase: {e}")
         
@@ -251,12 +247,12 @@ def send_welcome(message):
         markup.add(btn_support)
         
         # إرسال الرسالة
-        print(f"📤 إرسال رسالة الترحيب...")
+        print("📤 إرسال رسالة الترحيب...")
         result = bot.send_message(
             message.chat.id,
             f"أهلاً يا {user_name}! 👋\n\n"
             f"💰 رصيدك: {balance:.2f} ريال\n\n"
-            f"اختر من الأزرار بالأسفل 👇",
+            "اختر من الأزرار بالأسفل 👇",
             reply_markup=markup,
             parse_mode="Markdown"
         )
@@ -345,7 +341,7 @@ def handle_back_to_main(call):
         bot.edit_message_text(
             f"أهلاً يا {user_name}! 👋\n\n"
             f"💰 رصيدك: {balance:.2f} ريال\n\n"
-            f"اختر من الأزرار بالأسفل 👇",
+            "اختر من الأزرار بالأسفل 👇",
             call.message.chat.id,
             call.message.message_id,
             parse_mode="Markdown",
@@ -414,7 +410,7 @@ def my_id(message):
     log_message(message, "معالج /my_id")
     try:
         bot.reply_to(message, f"🆔 الآيدي الخاص بك: `{message.from_user.id}`", parse_mode="Markdown")
-        print(f"✅ تم إرسال الآيدي")
+        print("✅ تم إرسال الآيدي")
     except Exception as e:
         print(f"❌ خطأ: {e}")
 
@@ -665,7 +661,7 @@ def confirm_add_product(message):
             
             delivery_display = "⚡ فوري" if delivery_type == 'instant' else "👨‍💼 يدوي"
             bot.reply_to(message,
-                         f"✅ **تم إضافة المنتج بنجاح!**\n\n"
+                         "✅ **تم إضافة المنتج بنجاح!**\n\n"
                          f"📦 المنتج: {product['item_name']}\n"
                          f"💰 السعر: {product['price']} ريال\n"
                          f"🏷️ الفئة: {product['category']}\n"
@@ -691,15 +687,15 @@ def get_verification_code(message):
     code = generate_verification_code(user_id, user_name)
     
     bot.send_message(message.chat.id,
-                     f"🔐 **كود التحقق الخاص بك:**\n\n"
+                     "🔐 **كود التحقق الخاص بك:**\n\n"
                      f"`{code}`\n\n"
-                     f"⏱️ **صالح لمدة 10 دقائق**\n\n"
-                     f"💡 **خطوات الدخول:**\n"
-                     f"1️⃣ افتح الموقع في المتصفح\n"
-                     f"2️⃣ اضغط على زر 'حسابي'\n"
+                     "⏱️ **صالح لمدة 10 دقائق**\n\n"
+                     "💡 **خطوات الدخول:**\n"
+                     "1️⃣ افتح الموقع في المتصفح\n"
+                     "2️⃣ اضغط على زر 'حسابي'\n"
                      f"3️⃣ أدخل الآيدي الخاص بك: `{user_id}`\n"
-                     f"4️⃣ أدخل الكود أعلاه\n\n"
-                     f"⚠️ لا تشارك هذا الكود مع أحد!",
+                     "4️⃣ أدخل الكود أعلاه\n\n"
+                     "⚠️ لا تشارك هذا الكود مع أحد!",
                      parse_mode="Markdown")
 
 # أمر خاص بالآدمن لشحن رصيد المستخدمين
@@ -768,7 +764,7 @@ def edfapay_settings(message):
             if response.status_code == 200:
                 bot.send_message(
                     message.chat.id,
-                    f"✅ *تم تسجيل Callback URL بنجاح!*\n\n"
+                    "✅ *تم تسجيل Callback URL بنجاح!*\n\n"
                     f"🔗 URL: `{callback_url}`\n\n"
                     f"📡 Response: `{response.text[:200]}`",
                     parse_mode="Markdown"
@@ -776,7 +772,7 @@ def edfapay_settings(message):
             else:
                 bot.send_message(
                     message.chat.id,
-                    f"❌ *فشل تسجيل Callback URL*\n\n"
+                    "❌ *فشل تسجيل Callback URL*\n\n"
                     f"📡 Status: {response.status_code}\n"
                     f"📡 Response: `{response.text[:200]}`",
                     parse_mode="Markdown"
@@ -799,11 +795,11 @@ def edfapay_settings(message):
             
             bot.send_message(
                 message.chat.id,
-                f"📡 حالة EdfaPay Callback\n\n"
+                "📡 حالة EdfaPay Callback\n\n"
                 f"🔑 Merchant ID: {EDFAPAY_MERCHANT_ID}\n"
                 f"🌐 SITE_URL: {SITE_URL}\n\n"
                 f"📡 Response ({response.status_code}):\n{response_text}\n\n"
-                f"💡 للتسجيل أرسل: /edfapay register"
+                "💡 للتسجيل أرسل: /edfapay register"
             )
             
     except Exception as e:
@@ -846,9 +842,9 @@ def generate_keys(message):
         # إرسال المفاتيح
         if count == 1:
             response = (
-                f"🎁 **تم توليد المفتاح بنجاح!**\n\n"
+                "🎁 **تم توليد المفتاح بنجاح!**\n\n"
                 f"💰 القيمة: {amount} ريال\n"
-                f"🔑 المفتاح:\n"
+                "🔑 المفتاح:\n"
                 f"`{generated_keys[0]}`\n\n"
                 f"📝 يمكن للمستخدم شحنه بإرسال: /شحن {generated_keys[0]}"
             )
@@ -859,7 +855,7 @@ def generate_keys(message):
                 f"💰 قيمة كل مفتاح: {amount} ريال\n"
                 f"💵 المجموع الكلي: {amount * count} ريال\n\n"
                 f"🔑 المفاتيح:\n{keys_text}\n\n"
-                f"📝 الاستخدام: /شحن [المفتاح]"
+                "📝 الاستخدام: /شحن [المفتاح]"
             )
         
         bot.reply_to(message, response, parse_mode="Markdown")
@@ -1001,7 +997,7 @@ def handle_cancel_recharge(call):
             "يمكنك البدء من جديد بإرسال /شحن",
             parse_mode="Markdown"
         )
-    except Exception as e:
+    except Exception:
         bot.answer_callback_query(call.id, "حدث خطأ!")
 
 # دالة إنشاء فاتورة دفع من EdfaPay
@@ -1168,11 +1164,11 @@ def handle_user_state_message(message):
                 markup.add(btn_pay)
                 
                 bot.edit_message_text(
-                    f"✅ *تم إنشاء طلب الشحن!*\n\n"
+                    "✅ *تم إنشاء طلب الشحن!*\n\n"
                     f"💰 المبلغ: {amount} ريال\n"
                     f"📋 رقم الطلب: `{result['invoice_id']}`\n\n"
-                    f"👇 اضغط الزر أدناه للدفع:\n\n"
-                    f"⚠️ بعد الدفع سيتم إضافة الرصيد تلقائياً",
+                    "👇 اضغط الزر أدناه للدفع:\n\n"
+                    "⚠️ بعد الدفع سيتم إضافة الرصيد تلقائياً",
                     chat_id=wait_msg.chat.id,
                     message_id=wait_msg.message_id,
                     reply_markup=markup,
@@ -1182,7 +1178,7 @@ def handle_user_state_message(message):
                 # إشعار المالك
                 try:
                     bot.send_message(ADMIN_ID,
-                        f"🔔 *طلب شحن جديد*\n\n"
+                        "🔔 *طلب شحن جديد*\n\n"
                         f"👤 المستخدم: {user_name}\n"
                         f"🆔 الآيدي: {user_id}\n"
                         f"💰 المبلغ: {amount} ريال\n"
@@ -1193,9 +1189,9 @@ def handle_user_state_message(message):
                     pass
             else:
                 bot.edit_message_text(
-                    f"❌ *فشل إنشاء طلب الدفع*\n\n"
+                    "❌ *فشل إنشاء طلب الدفع*\n\n"
                     f"السبب: {result['error']}\n\n"
-                    f"حاول مرة أخرى لاحقاً أو تواصل مع الدعم",
+                    "حاول مرة أخرى لاحقاً أو تواصل مع الدعم",
                     chat_id=wait_msg.chat.id,
                     message_id=wait_msg.message_id,
                     parse_mode="Markdown"
@@ -1219,7 +1215,7 @@ def handle_user_state_message(message):
             # التحقق من استخدام المفتاح
             if key_data.get('used', False):
                 return bot.reply_to(message, 
-                    f"❌ هذا المفتاح تم استخدامه بالفعل!\n\n"
+                    "❌ هذا المفتاح تم استخدامه بالفعل!\n\n"
                     f"👤 استخدمه: {key_data.get('used_by', 'مستخدم')}")
             
             # شحن الرصيد
@@ -1247,13 +1243,13 @@ def handle_user_state_message(message):
             
             # إرسال رسالة نجاح
             bot.reply_to(message,
-                f"✅ *تم شحن رصيدك بنجاح!*\n\n"
+                "✅ *تم شحن رصيدك بنجاح!*\n\n"
                 f"💰 المبلغ المضاف: {amount} ريال\n"
                 f"💵 رصيدك الحالي: {get_balance(user_id)} ريال\n\n"
-                f"⏳ *ملاحظة:* المبلغ سيكون متاحاً للسحب العادي (5.5%) بعد 72 ساعة.\n"
-                f"⚡ يمكنك السحب الفوري الآن برسوم 8%.\n"
-                f"🚀 التحويل خلال 1-5 ساعات بعد الموافقة!\n\n"
-                f"🎉 استمتع بالتسوق!",
+                "⏳ *ملاحظة:* المبلغ سيكون متاحاً للسحب العادي (5.5%) بعد 72 ساعة.\n"
+                "⚡ يمكنك السحب الفوري الآن برسوم 8%.\n"
+                "🚀 التحويل خلال 1-5 ساعات بعد الموافقة!\n\n"
+                "🎉 استمتع بالتسوق!",
                 parse_mode="Markdown"
             )
             
@@ -1263,7 +1259,7 @@ def handle_user_state_message(message):
             # إشعار المالك
             try:
                 bot.send_message(ADMIN_ID,
-                    f"🔔 *تم استخدام مفتاح شحن*\n\n"
+                    "🔔 *تم استخدام مفتاح شحن*\n\n"
                     f"👤 المستخدم: {user_name}\n"
                     f"🆔 الآيدي: {user_id}\n"
                     f"💰 المبلغ: {amount} ريال\n"
@@ -1337,11 +1333,11 @@ def handle_user_state_message(message):
             # إرسال رابط الفاتورة للتاجر
             bot.send_message(
                 message.chat.id,
-                f"✅ *تم إنشاء الفاتورة بنجاح!*\n\n"
+                "✅ *تم إنشاء الفاتورة بنجاح!*\n\n"
                 f"💰 المبلغ: {amount} ريال\n"
                 f"🆔 رقم الفاتورة: `{invoice_id}`\n\n"
                 f"🔗 *رابط الفاتورة:*\n`{invoice_url}`\n\n"
-                f"📤 أرسل هذا الرابط للعميل للدفع",
+                "📤 أرسل هذا الرابط للعميل للدفع",
                 parse_mode="Markdown"
             )
                 
@@ -1362,7 +1358,7 @@ def list_keys(message):
     if not all_keys:
         return bot.reply_to(message, "📭 لا توجد مفاتيح محفوظة!")
     
-    response = f"📊 **إحصائيات المفاتيح**\n\n"
+    response = "📊 **إحصائيات المفاتيح**\n\n"
     response += f"✅ مفاتيح نشطة: {len(active_keys)}\n"
     response += f"🚫 مفاتيح مستخدمة: {used_count}\n"
     response += f"📈 الإجمالي: {len(all_keys)}\n\n"
@@ -1376,11 +1372,11 @@ def list_keys(message):
 @bot.message_handler(commands=['web'])
 def open_web_app(message):
     bot.send_message(message.chat.id, 
-                     f"🏪 **مرحباً بك في السوق!**\n\n"
-                     f"افتح الرابط التالي في متصفحك لتصفح المنتجات:\n\n"
+                     "🏪 **مرحباً بك في السوق!**\n\n"
+                     "افتح الرابط التالي في متصفحك لتصفح المنتجات:\n\n"
                      f"🔗 {SITE_URL}\n\n"
-                     f"💡 **نصيحة:** انسخ الرابط وافتحه في متصفح خارجي (Chrome/Safari) "
-                     f"للحصول على أفضل تجربة!",
+                     "💡 **نصيحة:** انسخ الرابط وافتحه في متصفح خارجي (Chrome/Safari) "
+                     "للحصول على أفضل تجربة!",
                      parse_mode="Markdown")
 
 # ============ نظام الفواتير للتجار ============
@@ -1595,7 +1591,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
 def claim_order(call):
     order_id = call.data.replace('claim_', '')
     admin_id = call.from_user.id
-    admin_name = call.from_user.first_name
+    call.from_user.first_name
     
     # التحقق من أن المستخدم هو المالك
     if admin_id != ADMIN_ID:
@@ -1631,9 +1627,9 @@ def claim_order(call):
             f"✅ تم استلام الطلب #{order_id}\n\n"
             f"📦 المنتج: {order['item_name']}\n"
             f"💰 السعر: {order['price']} ريال\n\n"
-            f"👨‍💼 أنت المسؤول عن هذا الطلب\n"
-            f"⏰ الحالة: قيد التنفيذ...\n\n"
-            f"🔒 سيتم إرسال البيانات السرية لك الآن...",
+            "👨‍💼 أنت المسؤول عن هذا الطلب\n"
+            "⏰ الحالة: قيد التنفيذ...\n\n"
+            "🔒 سيتم إرسال البيانات السرية لك الآن...",
             chat_id=call.message.chat.id,
             message_id=call.message.message_id
         )
@@ -1662,14 +1658,14 @@ def claim_order(call):
         admin_id,
         f"🔐 بيانات الطلب السرية #{order_id}\n\n"
         f"📦 المنتج: {order['item_name']}\n\n"
-        f"👤 معلومات العميل:\n"
+        "👤 معلومات العميل:\n"
         f"• الاسم: {order['buyer_name']}\n"
         f"• آيدي تيليجرام: {order['buyer_id']}\n"
         f"• آيدي اللعبة: {order['game_id']}\n"
         f"• الاسم في اللعبة: {order['game_name']}\n\n"
-        f"🔒 البيانات المحمية:\n"
+        "🔒 البيانات المحمية:\n"
         f"{hidden_info}\n\n"
-        f"⚡ قم بتنفيذ الطلب ثم اضغط الزر أدناه!",
+        "⚡ قم بتنفيذ الطلب ثم اضغط الزر أدناه!",
         reply_markup=markup
     )
     
@@ -1696,10 +1692,10 @@ def complete_order(call):
     # إشعار البائع
     bot.send_message(
         order['seller_id'],
-        f"💰 تم بيع منتجك!\n\n"
+        "💰 تم بيع منتجك!\n\n"
         f"📦 المنتج: {order['item_name']}\n"
         f"💵 المبلغ: {order['price']} ريال\n\n"
-        f"✅ تم إضافة المبلغ لرصيدك!"
+        "✅ تم إضافة المبلغ لرصيدك!"
     )
     
     # إشعار العميل
@@ -1709,10 +1705,10 @@ def complete_order(call):
     
     bot.send_message(
         order['buyer_id'],
-        f"🎉 تم تنفيذ طلبك!\n\n"
+        "🎉 تم تنفيذ طلبك!\n\n"
         f"📦 المنتج: {order['item_name']}\n\n"
-        f"✅ يرجى التحقق من حسابك والتأكد من استلام الخدمة\n\n"
-        f"⚠️ إذا استلمت الخدمة بنجاح، اضغط الزر أدناه لتأكيد الاستلام.",
+        "✅ يرجى التحقق من حسابك والتأكد من استلام الخدمة\n\n"
+        "⚠️ إذا استلمت الخدمة بنجاح، اضغط الزر أدناه لتأكيد الاستلام.",
         reply_markup=markup
     )
     
@@ -1758,9 +1754,9 @@ def buyer_confirm(call):
         print(f"⚠️ خطأ في تحديث الطلب في Firebase: {e}")
     
     bot.edit_message_text(
-        f"✅ شكراً لتأكيدك!\n\n"
-        f"تم إتمام الطلب بنجاح ✨\n"
-        f"نتمنى لك تجربة ممتعة! 🎮",
+        "✅ شكراً لتأكيدك!\n\n"
+        "تم إتمام الطلب بنجاح ✨\n"
+        "نتمنى لك تجربة ممتعة! 🎮",
         chat_id=call.message.chat.id,
         message_id=call.message.message_id
     )
@@ -1866,14 +1862,14 @@ def claim_manual_order(call):
             ))
             
             bot.edit_message_text(
-                f"✅ تم استلام الطلب بواسطتك!\n\n"
+                "✅ تم استلام الطلب بواسطتك!\n\n"
                 f"🆔 رقم الطلب: #{order_id}\n"
                 f"📦 المنتج: {order.get('item_name')}\n"
                 f"👤 المشتري: {order.get('buyer_name')}\n"
                 f"🔢 معرف المشتري: {order.get('buyer_id')}\n"
                 f"💰 السعر: {order.get('price')} ريال"
                 f"{buyer_details_text}\n\n"
-                f"👇 بعد تنفيذ الطلب اضغط الزر أدناه",
+                "👇 بعد تنفيذ الطلب اضغط الزر أدناه",
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 reply_markup=complete_markup
@@ -1886,7 +1882,7 @@ def claim_manual_order(call):
             try:
                 bot.send_message(
                     ADMIN_ID,
-                    f"📌 تم استلام طلب بواسطة مشرف\n\n"
+                    "📌 تم استلام طلب بواسطة مشرف\n\n"
                     f"🆔 رقم الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👤 المشتري: {order.get('buyer_name')}\n"
@@ -1900,11 +1896,11 @@ def claim_manual_order(call):
         try:
             bot.send_message(
                 int(order.get('buyer_id')),
-                f"👨‍💼 تم استلام طلبك!\n\n"
+                "👨‍💼 تم استلام طلبك!\n\n"
                 f"🆔 رقم الطلب: #{order_id}\n"
                 f"📦 المنتج: {order.get('item_name')}\n"
                 f"✅ المسؤول عن طلبك: {admin_name}\n\n"
-                f"⏳ جاري تنفيذ طلبك..."
+                "⏳ جاري تنفيذ طلبك..."
             )
         except:
             pass
@@ -1955,7 +1951,7 @@ def complete_manual_order(call):
         # تحديث رسالة الأدمن
         try:
             bot.edit_message_text(
-                f"✅ تم إكمال الطلب بنجاح!\n\n"
+                "✅ تم إكمال الطلب بنجاح!\n\n"
                 f"🆔 رقم الطلب: #{order_id}\n"
                 f"📦 المنتج: {order.get('item_name')}\n"
                 f"👤 المشتري: {order.get('buyer_name')}\n"
@@ -1976,22 +1972,22 @@ def complete_manual_order(call):
             if decrypted_hidden:
                 bot.send_message(
                     int(order.get('buyer_id')),
-                    f"🎉 تم تنفيذ طلبك بنجاح!\n\n"
+                    "🎉 تم تنفيذ طلبك بنجاح!\n\n"
                     f"🆔 رقم الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👨‍💼 تم التنفيذ بواسطة: {admin_name}\n\n"
                     f"🔐 بيانات الاشتراك:\n{decrypted_hidden}\n\n"
-                    f"⚠️ احفظ هذه البيانات في مكان آمن!\n"
-                    f"شكراً لتسوقك معنا! 💙"
+                    "⚠️ احفظ هذه البيانات في مكان آمن!\n"
+                    "شكراً لتسوقك معنا! 💙"
                 )
             else:
                 bot.send_message(
                     int(order.get('buyer_id')),
-                    f"🎉 تم تنفيذ طلبك بنجاح!\n\n"
+                    "🎉 تم تنفيذ طلبك بنجاح!\n\n"
                     f"🆔 رقم الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👨‍💼 تم التنفيذ بواسطة: {admin_name}\n\n"
-                    f"شكراً لتسوقك معنا! 💙"
+                    "شكراً لتسوقك معنا! 💙"
                 )
         except Exception as e:
             print(f"⚠️ فشل إشعار المشتري: {e}")
@@ -2001,7 +1997,7 @@ def complete_manual_order(call):
             if admin_id != ADMIN_ID:
                 bot.send_message(
                     ADMIN_ID,
-                    f"✅ تم تنفيذ طلب يدوي\n\n"
+                    "✅ تم تنفيذ طلب يدوي\n\n"
                     f"🆔 الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👨‍💼 المنفذ: {admin_name}\n"
@@ -2200,9 +2196,8 @@ def handle_withdraw_reject(call):
 from firebase_utils import (
     add_ledger_transaction, get_user_ledger_stats,
     get_partner_transactions, settle_partner_debt,
-    settle_single_transaction, delete_ledger_transaction,
-    get_ledger_transaction_by_id, delete_partner_all_transactions,
-    cleanup_old_ledger_transactions
+    settle_single_transaction, get_ledger_transaction_by_id,
+    delete_partner_all_transactions, cleanup_old_ledger_transactions
 )
 from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic, get_weekday_after_weeks
 
@@ -2289,7 +2284,7 @@ def back_to_start_menu(call):
         bot.edit_message_text(
             f"أهلاً يا {user_name}! 👋\n\n"
             f"💰 رصيدك: {balance:.2f} ريال\n\n"
-            f"اختر من الأزرار بالأسفل 👇",
+            "اختر من الأزرار بالأسفل 👇",
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
         )
@@ -2522,7 +2517,7 @@ def finish_ledger_transaction(user_id, message_obj, reminder):
         data['reminder_date'] = reminder
         
         # الحفظ في قاعدة البيانات
-        tx_id = add_ledger_transaction(user_id, data)
+        add_ledger_transaction(user_id, data)
         
         # تنظيف المسودة
         del acc_drafts[user_id]
@@ -2772,7 +2767,7 @@ def acc_confirm_settle(call):
         )
         
         bot.edit_message_text(
-            f"⚠️ **تأكيد التسديد**\n\n"
+            "⚠️ **تأكيد التسديد**\n\n"
             f"هل أنت متأكد من تسديد جميع مستحقات **{partner_name}**؟",
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
@@ -2809,7 +2804,7 @@ def acc_settle_single_transaction(call):
             srv_name = service_names.get(tx.get('service', ''), 'أخرى')
             
             bot.edit_message_text(
-                f"✅ **تم التسديد بنجاح!**\n\n"
+                "✅ **تم التسديد بنجاح!**\n\n"
                 f"👤 الشريك: {tx['partner_name']}\n"
                 f"📦 الخدمة: {srv_name}\n"
                 f"💰 المبلغ: {tx['amount']:.2f} ر.س",
@@ -2845,7 +2840,7 @@ def acc_perform_settle(call):
             markup.add(types.InlineKeyboardButton("🔙 رجوع للسجل", callback_data="acc_registry"))
             
             bot.edit_message_text(
-                f"✅ **تم التسديد بنجاح!**\n\n"
+                "✅ **تم التسديد بنجاح!**\n\n"
                 f"👤 الشريك: {partner_name}\n"
                 f"📊 العمليات: {count}\n"
                 f"💰 المبلغ: {total:.2f} ر.س",
@@ -2937,7 +2932,7 @@ def acc_delete_confirm(call):
     try:
         # استخراج اسم الشريك
         safe_name = call.data.replace("acc_del_confirm_", "")
-        partner_name = safe_name.replace("_", " ")
+        safe_name.replace("_", " ")
         
         # جلب بيانات الشريك
         user_id = call.from_user.id
@@ -2963,13 +2958,13 @@ def acc_delete_confirm(call):
         )
         
         bot.edit_message_text(
-            f"⚠️ **تأكيد الحذف**\n\n"
-            f"هل أنت متأكد من حذف الشريك:\n\n"
+            "⚠️ **تأكيد الحذف**\n\n"
+            "هل أنت متأكد من حذف الشريك:\n\n"
             f"👤 **{actual_name}**\n"
             f"📊 عدد العمليات: {partner_data['count']}\n"
             f"💰 المستحق: {partner_data['pending']:.2f} ر.س\n"
             f"✅ المسدد: {partner_data['paid']:.2f} ر.س\n\n"
-            f"⛔ **هذا الإجراء لا يمكن التراجع عنه!**",
+            "⛔ **هذا الإجراء لا يمكن التراجع عنه!**",
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
         )
@@ -3013,7 +3008,7 @@ def acc_delete_do(call):
             )
             
             bot.edit_message_text(
-                f"✅ **تم الحذف بنجاح!**\n\n"
+                "✅ **تم الحذف بنجاح!**\n\n"
                 f"👤 الشريك: {actual_name}\n"
                 f"🗑️ عدد العمليات المحذوفة: {deleted_count}",
                 call.message.chat.id, call.message.message_id,

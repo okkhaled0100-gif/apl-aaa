@@ -4,7 +4,7 @@ import time
 import secrets
 import string
 from extensions import db, logger, SITE_URL
-from firebase_utils import get_balance, add_balance
+from firebase_utils import get_balance
 from payment import create_wallet_payment
 from notifications import notify_new_charge
 from security_utils import require_session_user, get_session_user_id

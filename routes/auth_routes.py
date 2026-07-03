@@ -1,7 +1,7 @@
 """
 Auth Routes - تسجيل الدخول والتحقق والتسجيل
 """
-from flask import Blueprint, request, jsonify, session, redirect, url_for, render_template
+from flask import Blueprint, request, jsonify, session, redirect, render_template
 from extensions import db, bot
 from utils import regenerate_session, generate_code, validate_phone
 import time
@@ -16,8 +16,7 @@ try:
     from services.authentica_service import (
         is_authentica_configured,
         send_otp_whatsapp,
-        verify_otp_authentica,
-        format_phone_number
+        verify_otp_authentica
     )
     AUTHENTICA_AVAILABLE = is_authentica_configured()
     print(f"📱 Authentica Service: {'✅ متاح' if AUTHENTICA_AVAILABLE else '❌ غير مُعد (AUTHENTICA_API_KEY فارغ)'}")
@@ -170,7 +169,7 @@ def login():
                     # 🔒 تسجيل الدخول من جهاز جديد
                     if SECURITY_LOGGING:
                         log_security_event(SecurityEvent.LOGIN_NEW_DEVICE, user_id)
-            except Exception as e:
+            except Exception:
                 pass  # لا نوقف تسجيل الدخول إذا فشل الكشف
         
         return jsonify({'success': True, 'message': 'تم تسجيل الدخول بنجاح'})
@@ -458,7 +457,6 @@ def register_send_code():
         return jsonify({'success': False, 'message': 'الرجاء إدخال الاسم'})
 
     # تنظيف رقم الجوال
-    import re
     phone = phone.replace(' ', '').replace('-', '').replace('+', '')
     if phone.startswith('966'):
         phone = '0' + phone[3:]
@@ -499,7 +497,7 @@ def register_send_code():
             # محاولة إرسال عبر تلغرام إذا كان ممكن
             print(f"⚠️ Registration fallback - code: {new_code} for phone: {phone}")
 
-        return jsonify({'success': True, 'message': f'✅ تم إرسال كود التحقق على واتساب'})
+        return jsonify({'success': True, 'message': '✅ تم إرسال كود التحقق على واتساب'})
 
     except Exception as e:
         print(f"❌ Register send code error: {e}")
@@ -701,7 +699,6 @@ def send_code_phone():
         user_id = None
 
         # تجربة صيغ مختلفة
-        import re
         clean = phone.replace(' ', '').replace('-', '').replace('+', '')
         search_phones = [phone]
         if clean.startswith('05') and len(clean) == 10:
@@ -802,7 +799,6 @@ def login_phone():
                 record_failed_login()
                 return jsonify({'success': False, 'message': 'الحساب غير موجود'})
         elif phone:
-            import re
             clean = phone.replace(' ', '').replace('-', '').replace('+', '')
             search_phones = [phone]
             if clean.startswith('05'):

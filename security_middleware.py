@@ -12,12 +12,10 @@ Security Middleware - طبقة الحماية المتقدمة
 
 import os
 import time
-import random
-import string
 import hashlib
 import logging
 from functools import wraps
-from flask import session, request, jsonify, abort
+from flask import session, request, jsonify
 from datetime import datetime
 import json
 
@@ -400,8 +398,6 @@ def add_security_headers(response):
 
 # ==================== 6. Security Logging - تسجيل الأحداث الأمنية ====================
 
-import json
-from datetime import datetime
 
 # Logger خاص بالأمان
 security_logger = logging.getLogger('security')
@@ -520,7 +516,6 @@ def log_security_event(event_type, user_id=None, ip=None, details=None, severity
 def _send_critical_alert(event_record):
     """إرسال تنبيه للأحداث الحرجة (داخلي)"""
     # يمكن إضافة إرسال تنبيه عبر Telegram هنا
-    pass
 
 
 def get_security_logs(user_id=None, event_type=None, limit=100):

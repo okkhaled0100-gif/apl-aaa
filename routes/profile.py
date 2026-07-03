@@ -6,12 +6,10 @@ from extensions import db, logger, bot, ADMIN_ID, BOT_USERNAME
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 from telebot import types
-import json
 import random
 import time
 import base64
 import io
-import os
 from datetime import datetime
 
 # استيراد أدوات التشفير
@@ -43,7 +41,7 @@ except ImportError:
 
 # 🔒 استيراد نظام Security Logging
 try:
-    from security_middleware import log_security_event, SecurityEvent, log_withdrawal
+    from security_middleware import log_withdrawal
     SECURITY_LOGGING = True
 except ImportError:
     SECURITY_LOGGING = False
@@ -815,7 +813,7 @@ def setup_2fa():
             return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
         
         user_id = session['user_id']
-        user_name = session.get('user_name', 'User')
+        session.get('user_name', 'User')
         
         # التحقق من أن 2FA غير مفعل مسبقاً
         user_ref = db.collection('users').document(user_id)
@@ -1331,7 +1329,7 @@ def submit_withdraw():
                         minutes_left = FREEZE_MINUTES - minutes_passed
                         if minutes_left > min_minutes_left:
                             min_minutes_left = int(minutes_left)
-            except Exception as e:
+            except Exception:
                 # في حالة الخطأ، نعتبر كل الرصيد متاح
                 total_frozen_balance = 0
             

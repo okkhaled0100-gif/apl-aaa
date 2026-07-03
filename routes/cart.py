@@ -6,12 +6,12 @@ from flask import Blueprint, request, jsonify, session, redirect, render_templat
 from datetime import datetime, timedelta
 import random
 
-from extensions import db, FIREBASE_AVAILABLE
+from extensions import db
 from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance
 from google.cloud import firestore
 from security_utils import (
-    require_session_user, get_session_user_id, verify_user_ownership,
-    checkout_with_transaction, log_security_event, sanitize_error_message
+    require_session_user, get_session_user_id, log_security_event,
+    sanitize_error_message
 )
 from encryption_utils import decrypt_data
 
@@ -534,12 +534,12 @@ def api_cart_checkout():
                         ))
                         
                         # رسالة بدون بيانات المشتري - ستظهر فقط بعد الاستلام
-                        admin_msg = f"🆕 طلب يدوي جديد!\n\n"
+                        admin_msg = "🆕 طلب يدوي جديد!\n\n"
                         admin_msg += f"🆔 رقم الطلب: #{item['order_id']}\n"
                         admin_msg += f"📦 المنتج: {item['name']}\n"
                         admin_msg += f"💰 السعر: {item['price']} ر.س\n"
-                        admin_msg += f"\n🔒 بيانات المشتري ستظهر بعد الاستلام"
-                        admin_msg += f"\n👇 اضغط لاستلام الطلب"
+                        admin_msg += "\n🔒 بيانات المشتري ستظهر بعد الاستلام"
+                        admin_msg += "\n👇 اضغط لاستلام الطلب"
                         
                         # إرسال لجميع المشرفين والمالك
                         for admin_id in admin_ids:
@@ -554,7 +554,7 @@ def api_cart_checkout():
             # إشعار عام للأدمن
             if ADMIN_ID:
                 try:
-                    admin_msg = f"🛒 شراء سلة جديد!\n\n"
+                    admin_msg = "🛒 شراء سلة جديد!\n\n"
                     admin_msg += f"👤 المشتري: {buyer_name} ({user_id})\n"
                     admin_msg += f"📦 عدد المنتجات: {len(purchased_items)}\n"
                     admin_msg += f"⚡ فوري: {len(instant_items)} | 👨‍💼 يدوي: {len(manual_items)}\n"

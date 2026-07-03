@@ -5,7 +5,7 @@
 
 from flask import Blueprint, render_template, redirect, request, jsonify
 import time
-from extensions import db, BOT_USERNAME, logger
+from extensions import db, BOT_USERNAME
 
 # استيراد الدوال المطلوبة
 from telegram.bot_handlers import create_customer_invoice
