@@ -1203,40 +1203,61 @@ def link_telegram_verify():
         
         telegram_id = stored['telegram_id']
 
-        # دمج رصيد الحساب البوتي إذا كان موجوداً (حساب أُنشئ تلقائياً عند /start)
+        # ===== دمج كامل لحساب البوت مع الحساب الحقيقي =====
         try:
             bot_doc_ref = db.collection('users').document(telegram_id)
             bot_doc = bot_doc_ref.get()
+
             if bot_doc.exists and telegram_id != user_id:
                 bot_data = bot_doc.to_dict()
-                # نقل الرصيد فقط إذا لم يكن لديه جوال (حساب بوت فقط)
-                if not bot_data.get('phone'):
-                    bot_balance = float(bot_data.get('balance', 0.0))
-                    if bot_balance > 0:
-                        current_doc = db.collection('users').document(user_id).get()
-                        current_balance = float(current_doc.to_dict().get('balance', 0.0)) if current_doc.exists else 0.0
-                        db.collection('users').document(user_id).update({'balance': current_balance + bot_balance})
-                    # إزالة telegram_id من الحساب البوتي لتجنب التعارض
-                    bot_doc_ref.update({'telegram_id': None, 'telegram_started': False, 'merged_to': user_id})
-        except Exception as merge_err:
-            logger.warning(f"تحذير: فشل دمج الحساب البوتي: {merge_err}")
 
-        # ربط تيليجرام بالحساب الحالي
+                # نتأكد أنه حساب بوت فقط (بدون جوال)
+                if not bot_data.get('phone'):
+                    current_doc = db.collection('users').document(user_id).get()
+                    current_data = current_doc.to_dict() if current_doc.exists else {}
+
+                    merge_fields = {}
+
+                    # نقل الرصيد
+                    bot_balance = float(bot_data.get('balance', 0.0))
+                    current_balance = float(current_data.get('balance', 0.0))
+                    merge_fields['balance'] = current_balance + bot_balance
+
+                    # نقل الصورة إن لم تكن موجودة في الحساب الحقيقي
+                    if not current_data.get('profile_photo') and bot_data.get('profile_photo'):
+                        merge_fields['profile_photo'] = bot_data['profile_photo']
+
+                    # نقل اسم تيليجرام (username)
+                    if not current_data.get('telegram_username') and bot_data.get('username'):
+                        merge_fields['telegram_username'] = bot_data['username']
+
+                    # تطبيق البيانات المدموجة
+                    if merge_fields:
+                        db.collection('users').document(user_id).update(merge_fields)
+
+                    # حذف حساب البوت نهائياً
+                    bot_doc_ref.delete()
+                    logger.info(f"✅ تم حذف حساب البوت {telegram_id} ودمجه مع {user_id}")
+
+        except Exception as merge_err:
+            logger.warning(f"تحذير: فشل الدمج الكامل للحساب البوتي: {merge_err}")
+
+        # ربط تيليجرام بالحساب الحقيقي
         db.collection('users').document(user_id).update({
             'telegram_id': telegram_id,
             'telegram_linked': True,
             'telegram_started': True,
             'telegram_linked_at': time.time()
         })
-        
+
         # إرسال رسالة تأكيد للمستخدم عبر تيليجرام
         try:
-            bot.send_message(int(telegram_id), 
-                "✅ تم ربط حساب تيليجرام بنجاح!\n\nالآن ستصلك الإشعارات والأكواد عبر تيليجرام.", 
+            bot.send_message(int(telegram_id),
+                "✅ تم ربط حساب تيليجرام بنجاح!\n\nالآن ستصلك الإشعارات والأكواد عبر تيليجرام.",
                 parse_mode='HTML')
         except:
             pass
-        
+
         del telegram_link_codes[user_id]
         
         # إشعار
