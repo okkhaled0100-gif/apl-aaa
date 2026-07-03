@@ -25,7 +25,7 @@ from extensions import (
     db, logger, ADMIN_ID,
     TOKEN, SITE_URL, SECRET_KEY, EDFAPAY_MERCHANT_ID,
     EDFAPAY_PASSWORD, verification_codes,
-    bot, BOT_ACTIVE, BOT_USERNAME
+    bot, BOT_ACTIVE, BOT_USERNAME, display_settings
 )
 from config import (
     EDFAPAY_API_URL, SESSION_CONFIG, IS_PRODUCTION,
