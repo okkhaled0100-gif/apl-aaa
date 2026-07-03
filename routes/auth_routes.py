@@ -726,24 +726,45 @@ def send_code_phone():
             'code_time': time.time()
         })
 
-        # التحقق من توفر Authentica
-        if not AUTHENTICA_AVAILABLE or not is_authentica_configured():
-            # Fallback: إرسال عبر Telegram
+        user_data = user_doc.to_dict()
+        telegram_id   = user_data.get('telegram_id')
+        telegram_linked = user_data.get('telegram_linked', False)
+        user_email    = user_data.get('email')
+        email_verified = user_data.get('email_verified', False)
+        otp_msg = f"📱 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 10 دقائق"
+
+        # ① الأولوية: تيليجرام مربوط → مجاني تماماً
+        if telegram_id and telegram_linked:
             try:
-                message_text = f"📱 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 10 دقائق"
-                bot.send_message(int(user_id), message_text, parse_mode='HTML')
+                bot.send_message(int(telegram_id), otp_msg, parse_mode='HTML')
                 return jsonify({
                     'success': True,
-                    'message': '✅ تم إرسال الكود عبر Telegram',
+                    'message': '✅ تم إرسال الكود عبر تيليجرام',
                     'user_id': user_id,
                     'method': 'telegram'
                 })
-            except:
-                return jsonify({'success': False, 'message': 'خدمة الرسائل غير متاحة'})
+            except Exception as tg_err:
+                print(f"⚠️ فشل إرسال تيليجرام: {tg_err}")
 
-        # إرسال عبر WhatsApp
+        # ② الأولوية: إيميل مربوط → رخيص
+        if user_email and email_verified:
+            try:
+                sent = send_email_otp(user_email, new_code)
+                if sent:
+                    return jsonify({
+                        'success': True,
+                        'message': f'✅ تم إرسال الكود إلى بريدك الإلكتروني',
+                        'user_id': user_id,
+                        'method': 'email'
+                    })
+            except Exception as em_err:
+                print(f"⚠️ فشل إرسال الإيميل: {em_err}")
+
+        # ③ Fallback: WhatsApp/SMS (مدفوع)
+        if not AUTHENTICA_AVAILABLE or not is_authentica_configured():
+            return jsonify({'success': False, 'message': 'خدمة الرسائل غير متاحة. يرجى ربط تيليجرام أو إيميل أولاً'})
+
         result = send_otp_whatsapp(phone, otp_code=new_code)
-
         if result['success']:
             return jsonify({
                 'success': True,
@@ -752,18 +773,7 @@ def send_code_phone():
                 'method': 'whatsapp'
             })
         else:
-            # Fallback: إرسال عبر Telegram
-            try:
-                message_text = f"📱 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 10 دقائق"
-                bot.send_message(int(user_id), message_text, parse_mode='HTML')
-                return jsonify({
-                    'success': True,
-                    'message': '✅ تم إرسال الكود عبر Telegram (واتساب غير متاح)',
-                    'user_id': user_id,
-                    'method': 'telegram'
-                })
-            except:
-                return jsonify({'success': False, 'message': result['message']})
+            return jsonify({'success': False, 'message': result['message']})
 
     except Exception as e:
         print(f"❌ Phone Send Code Error: {e}")
