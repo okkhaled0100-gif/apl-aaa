@@ -365,7 +365,7 @@
             <div class="logo-section">
                 <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>كود التحقق</h1>
-                <p>أدخل الكود المرسل لك</p>
+                <p id="step2SubText">أدخل الكود المرسل لك</p>
             </div>
 
             <div class="timer-box">⏱️ <span id="countdown">2:00</span></div>
@@ -516,7 +516,7 @@
         try {
             var res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user_id: userId}) });
             var data = await res.json();
-            if (data.success) { goToStep2(); }
+            if (data.success) { goToStep2(data.message); }
             else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
     });
@@ -538,7 +538,7 @@
             if (data.success) {
                 if (data.user_id) currentUserId = data.user_id;
                 isRegistering = false;
-                goToStep2();
+                goToStep2(data.message);
             } else { showErr('error1', data.message); }
             btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = '📲 إرسال كود SMS'; }
@@ -557,7 +557,7 @@
         try {
             var res = await fetch('/api/auth/send-code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: email}) });
             var data = await res.json();
-            if (data.success) { isRegistering = false; goToStep2(); }
+            if (data.success) { isRegistering = false; goToStep2(data.message); }
             else if (data.not_registered) {
                 // الحساب غير مسجل - عرض نموذج التسجيل
                 document.getElementById('regEmail').value = email;
@@ -568,9 +568,15 @@
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
     });
 
-    function goToStep2() {
+    function goToStep2(sentMsg) {
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
+        if (sentMsg) {
+            var icons = { telegram: '🔵 ', email: '📧 ', whatsapp: '📲 ' };
+            document.getElementById('step2SubText').textContent = sentMsg;
+        } else {
+            document.getElementById('step2SubText').textContent = 'أدخل الكود المرسل لك';
+        }
         startCountdown();
     }
 
