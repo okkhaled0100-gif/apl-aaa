@@ -190,47 +190,60 @@ def send_welcome(message):
         
         # جلب صورة البروفايل من تيليجرام
         profile_photo = get_user_profile_photo(user_id)
-        
+
         # جلب رصيد المستخدم
         balance = 0.0
-        
+
         # حفظ معلومات المستخدم في Firebase
         if db:
             try:
-                user_ref = db.collection('users').document(user_id)
-                user_doc = user_ref.get()
-                
-                if not user_doc.exists:
-                    user_data = {
-                        'telegram_id': user_id,
-                        'name': user_name,
-                        'username': username,
-                        'balance': 0.0,
-                        'telegram_started': True,  # المستخدم بدأ محادثة مع البوت
-                        'created_at': firestore.SERVER_TIMESTAMP,
-                        'last_seen': firestore.SERVER_TIMESTAMP
-                    }
-                    if profile_photo:
-                        user_data['profile_photo'] = profile_photo
-                    user_ref.set(user_data)
-                    print("✅ مستخدم جديد تم إنشاؤه")
-                    
-                    # إرسال إشعار لقناة التفاعلات
-                    send_activity_notification('register', user_id, username, {})
-                else:
-                    # جلب الرصيد من الحساب الحقيقي (SMS أو بوت)
-                    real_id = get_real_user_id(user_id)
+                # ① أولاً: هل هذا الـ telegram_id مرتبط بحساب SMS موجود؟
+                real_id = get_real_user_id(user_id)
+                linked_to_sms = (real_id != user_id)
+
+                if linked_to_sms:
+                    # الحساب الحقيقي موجود → نحدّث بيانات تيليجرام عليه فقط
                     balance = get_balance(real_id)
                     update_data = {
-                        'name': user_name,
-                        'username': username,
-                        'telegram_started': True,  # تحديث: المستخدم بدأ محادثة مع البوت
+                        'telegram_started': True,
                         'last_seen': firestore.SERVER_TIMESTAMP
                     }
                     if profile_photo:
                         update_data['profile_photo'] = profile_photo
-                    user_ref.update(update_data)
-                    print("✅ مستخدم موجود تم تحديثه")
+                    db.collection('users').document(real_id).update(update_data)
+                    print(f"✅ مرتبط بحساب SMS ({real_id}) - لا يُنشأ حساب جديد")
+                else:
+                    # ② الحساب البوتي (doc.id = telegram_id)
+                    user_ref = db.collection('users').document(user_id)
+                    user_doc = user_ref.get()
+
+                    if not user_doc.exists:
+                        user_data = {
+                            'telegram_id': user_id,
+                            'name': user_name,
+                            'username': username,
+                            'balance': 0.0,
+                            'telegram_started': True,
+                            'created_at': firestore.SERVER_TIMESTAMP,
+                            'last_seen': firestore.SERVER_TIMESTAMP
+                        }
+                        if profile_photo:
+                            user_data['profile_photo'] = profile_photo
+                        user_ref.set(user_data)
+                        print("✅ مستخدم بوت جديد تم إنشاؤه")
+                        send_activity_notification('register', user_id, username, {})
+                    else:
+                        balance = get_balance(user_id)
+                        update_data = {
+                            'name': user_name,
+                            'username': username,
+                            'telegram_started': True,
+                            'last_seen': firestore.SERVER_TIMESTAMP
+                        }
+                        if profile_photo:
+                            update_data['profile_photo'] = profile_photo
+                        user_ref.update(update_data)
+                        print("✅ مستخدم بوت موجود تم تحديثه")
             except Exception as e:
                 print(f"⚠️ خطأ في Firebase: {e}")
         
