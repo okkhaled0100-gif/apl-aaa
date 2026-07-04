@@ -1459,7 +1459,7 @@ def generate_invoice_id():
     chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
     return ''.join(random.choice(chars) for _ in range(6))
 
-def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None):
+def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None, customer_email=None):
     """إنشاء فاتورة دفع للعميل وإرسالها لـ EdfaPay"""
     try:
         # استخدام معرف الفاتورة الأصلي أو توليد جديد
@@ -1481,7 +1481,15 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
         # إذا بدأ بصفر، أضف 966 (للتوافق مع الأرقام القديمة)
         if phone.startswith('0'):
             phone = '966' + phone[1:]
-        
+
+        # اختيار الايميل: الحقيقي ان كان صالحا، والا وهمي
+        import re as _re
+        _fallback_email = f'customer{int(time.time())}@invoice.com'
+        if customer_email and _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', customer_email):
+            payer_email = customer_email.strip().lower()
+        else:
+            payer_email = _fallback_email
+
         # بيانات الطلب
         payload = {
             'action': 'SALE',
@@ -1497,7 +1505,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
             'payer_country': 'SA',
             'payer_city': 'Riyadh',
             'payer_zip': '12221',
-            'payer_email': f'customer{int(time.time())}@invoice.com',
+            'payer_email': payer_email,
             'payer_phone': phone,
             'payer_ip': '176.44.76.222',
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}&invoice={invoice_id}",
@@ -1538,6 +1546,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
                 'order_id': order_id,
                 'invoice_id': invoice_id,
                 'is_merchant_invoice': True,  # علامة أنها فاتورة تاجر
+                'payer_email': payer_email,  # الايميل المرسل لـ EdfaPay (للتحقق)
                 'status': 'pending',
                 'created_at': time.time()
             }

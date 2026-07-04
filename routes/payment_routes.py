@@ -143,7 +143,7 @@ def process_invoice_payment(invoice_id):
     merchant_name = invoice_data.get('merchant_name')
     amount = invoice_data.get('amount')
     
-    result = create_customer_invoice(merchant_id, merchant_name, amount, phone, invoice_id)
+    result = create_customer_invoice(merchant_id, merchant_name, amount, phone, invoice_id, customer_email=customer_email)
     
     if result['success']:
         # تحديث الفاتورة الأصلية
