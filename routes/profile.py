@@ -1203,52 +1203,53 @@ def link_telegram_verify():
         
         telegram_id = stored['telegram_id']
 
-        # ===== دمج كامل لحساب البوت مع الحساب الحقيقي =====
+        # ===== ترحيل كامل: نقل الحساب ليصبح ID = telegram_id =====
         try:
+            current_doc = db.collection('users').document(user_id).get()
+            current_data = current_doc.to_dict() if current_doc.exists else {}
+
+            # دمج بيانات حساب البوت إن وُجد
             bot_doc_ref = db.collection('users').document(telegram_id)
             bot_doc = bot_doc_ref.get()
-
             if bot_doc.exists and telegram_id != user_id:
                 bot_data = bot_doc.to_dict()
-
-                # نتأكد أنه حساب بوت فقط (بدون جوال)
                 if not bot_data.get('phone'):
-                    current_doc = db.collection('users').document(user_id).get()
-                    current_data = current_doc.to_dict() if current_doc.exists else {}
-
-                    merge_fields = {}
-
-                    # نقل الرصيد
                     bot_balance = float(bot_data.get('balance', 0.0))
-                    current_balance = float(current_data.get('balance', 0.0))
-                    merge_fields['balance'] = current_balance + bot_balance
-
-                    # نقل الصورة إن لم تكن موجودة في الحساب الحقيقي
+                    current_data['balance'] = float(current_data.get('balance', 0.0)) + bot_balance
                     if not current_data.get('profile_photo') and bot_data.get('profile_photo'):
-                        merge_fields['profile_photo'] = bot_data['profile_photo']
-
-                    # نقل اسم تيليجرام (username)
+                        current_data['profile_photo'] = bot_data['profile_photo']
                     if not current_data.get('telegram_username') and bot_data.get('username'):
-                        merge_fields['telegram_username'] = bot_data['username']
+                        current_data['telegram_username'] = bot_data['username']
 
-                    # تطبيق البيانات المدموجة
-                    if merge_fields:
-                        db.collection('users').document(user_id).update(merge_fields)
+            # إنشاء document جديد بـ ID = telegram_id يحمل كل البيانات
+            new_data = {
+                **current_data,
+                'telegram_id': telegram_id,
+                'telegram_linked': True,
+                'telegram_started': True,
+                'telegram_linked_at': time.time()
+            }
+            db.collection('users').document(telegram_id).set(new_data)
 
-                    # حذف حساب البوت نهائياً
-                    bot_doc_ref.delete()
-                    logger.info(f"✅ تم حذف حساب البوت {telegram_id} ودمجه مع {user_id}")
+            # حذف الحساب القديم (SMS ID) والحساب البوتي إن وُجدا
+            if user_id != telegram_id:
+                db.collection('users').document(user_id).delete()
+            if bot_doc.exists and telegram_id != user_id:
+                bot_doc_ref.delete()
 
-        except Exception as merge_err:
-            logger.warning(f"تحذير: فشل الدمج الكامل للحساب البوتي: {merge_err}")
+            # تحديث الـ session للـ ID الجديد
+            session['user_id'] = telegram_id
+            logger.info(f"✅ ترحيل الحساب: {user_id} → {telegram_id}")
 
-        # ربط تيليجرام بالحساب الحقيقي
-        db.collection('users').document(user_id).update({
-            'telegram_id': telegram_id,
-            'telegram_linked': True,
-            'telegram_started': True,
-            'telegram_linked_at': time.time()
-        })
+        except Exception as migrate_err:
+            logger.warning(f"تحذير: فشل ترحيل الحساب: {migrate_err}")
+            # fallback: ربط بدون ترحيل
+            db.collection('users').document(user_id).update({
+                'telegram_id': telegram_id,
+                'telegram_linked': True,
+                'telegram_started': True,
+                'telegram_linked_at': time.time()
+            })
 
         # إرسال رسالة تأكيد للمستخدم عبر تيليجرام
         try:
@@ -1259,13 +1260,13 @@ def link_telegram_verify():
             pass
 
         del telegram_link_codes[user_id]
-        
+
         # إشعار
         user_name = session.get('user_name', 'مستخدم')
         telegram_username = session.get('telegram_username', '')
-        send_verification_notification(user_id, user_name, telegram_username, 'telegram')
-        
-        return jsonify({'success': True, 'message': 'تم ربط حساب تيليجرام بنجاح ✅'})
+        send_verification_notification(telegram_id, user_name, telegram_username, 'telegram')
+
+        return jsonify({'success': True, 'message': 'تم ربط حساب تيليجرام بنجاح ✅', 'reload': True})
     
     except Exception as e:
         logger.error(f"خطأ في link_telegram_verify: {e}")
