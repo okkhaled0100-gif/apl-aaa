@@ -1231,11 +1231,9 @@ def link_telegram_verify():
             }
             db.collection('users').document(telegram_id).set(new_data)
 
-            # حذف الحساب القديم (SMS ID) والحساب البوتي إن وُجدا
+            # حذف الحساب القديم (SMS ID) فقط — لا نحذف telegram_id لأننا أنشأناه للتو
             if user_id != telegram_id:
                 db.collection('users').document(user_id).delete()
-            if bot_doc.exists and telegram_id != user_id:
-                bot_doc_ref.delete()
 
             # تحديث الـ session للـ ID الجديد
             session['user_id'] = telegram_id
