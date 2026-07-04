@@ -437,6 +437,11 @@
             <div id="link-tab" class="tab-content">
                 <form id="linkForm" onsubmit="createRechargeLink(event)">
                     <div style="margin-bottom: 20px;">
+                        <label class="form-label"> اسم المنتج (اختياري)</label>
+                        <input type="text" id="linkProductName" placeholder="مثال: اشتراك نتفلكس"
+                               class="form-input" maxlength="60">
+                    </div>
+                    <div style="margin-bottom: 20px;">
                         <label class="form-label"> المبلغ المراد إرساله</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <input type="number" id="linkAmount" placeholder="100" min="10" max="5000" required
@@ -599,7 +604,8 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    amount: parseFloat(amount)
+                    amount: parseFloat(amount),
+                    product_name: document.getElementById('linkProductName').value.trim()
                 })
             });
             const result = await response.json();

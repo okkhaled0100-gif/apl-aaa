@@ -93,8 +93,22 @@ def create_recharge_link():
         data = request.get_json() or request.form
         amount = str(data.get('amount', '')).strip()
         user_id = get_session_user_id()
-        user_name = f"User {user_id}"
-        
+
+        # جلب اسم التاجر الحقيقي من Firestore (name > first_name > fallback)
+        user_name = None
+        try:
+            _udoc = db.collection('users').document(str(user_id)).get()
+            if _udoc.exists:
+                _ud = _udoc.to_dict()
+                user_name = _ud.get('name') or _ud.get('first_name') or _ud.get('username')
+        except Exception as _e:
+            logger.error(f"خطأ في جلب اسم التاجر: {_e}")
+        if not user_name:
+            user_name = f"User {user_id}"
+
+        # اسم المنتج (اختياري - يظهر للعميل)
+        product_name = str(data.get('product_name', '')).strip()[:60]
+
         # التحقق من المبلغ
         if not amount:
             return jsonify({'success': False, 'error': 'المبلغ مطلوب'})
@@ -110,11 +124,14 @@ def create_recharge_link():
         short_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
         invoice_id = f"L{short_id}"  # مثلاً: La1b2c3d4
         
-        # بيانات الفاتورة
+        # بيانات الفاتورة (merchant_* لتوافق مسار الدفع)
         invoice_data = {
             'invoice_id': invoice_id,
-            'recipient_id': user_id,                   # من سينال الرصيد
+            'merchant_id': user_id,                    # من سينال الرصيد (يقرأه مسار الدفع)
+            'merchant_name': user_name,                # الاسم الحقيقي
+            'recipient_id': user_id,
             'recipient_name': user_name,
+            'product_name': product_name,              # اسم المنتج
             'amount': amount_int,
             'status': 'pending',
             'created_at': time.time(),

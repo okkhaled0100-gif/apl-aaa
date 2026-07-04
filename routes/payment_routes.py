@@ -72,7 +72,8 @@ def show_invoice(invoice_id):
         return render_template('invoice/paid.html')
     
     # عرض صفحة الفاتورة
-    merchant_name = invoice_data.get('merchant_name', 'التاجر')
+    merchant_name = invoice_data.get('merchant_name') or invoice_data.get('recipient_name') or 'التاجر'
+    product_name = invoice_data.get('product_name', '')
     amount = invoice_data.get('amount', 0)
     
     # جلب وقت الانتهاء المحفوظ
@@ -95,6 +96,7 @@ def show_invoice(invoice_id):
     
     return render_template('invoice/show.html',
         merchant_name=merchant_name,
+        product_name=product_name,
         amount=amount,
         invoice_id=invoice_id,
         remaining_seconds=remaining_seconds)
@@ -108,6 +110,10 @@ def process_invoice_payment(invoice_id):
     phone = request.form.get('full_phone', '').strip()
     if not phone:
         phone = request.form.get('phone', '').strip()
+
+    # بيانات العميل الإضافية
+    customer_name = request.form.get('customer_name', '').strip()[:60]
+    customer_email = request.form.get('customer_email', '').strip()[:120]
     
     # البحث عن الفاتورة
     invoice_data = merchant_invoices.get(invoice_id)
@@ -147,6 +153,8 @@ def process_invoice_payment(invoice_id):
             
             db.collection('merchant_invoices').document(invoice_id).update({
                 'customer_phone': phone,
+                'customer_name': customer_name,
+                'customer_email': customer_email,
                 'order_id': result['order_id']
             })
         except:
