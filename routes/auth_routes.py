@@ -495,7 +495,7 @@ def register_send_code():
                 'time': time.time()
             }
             # محاولة إرسال عبر تلغرام إذا كان ممكن
-            print(f"⚠️ Registration fallback - code: {new_code} for phone: {phone}")
+            print(f"⚠️ Registration fallback triggered for phone ending ...{phone[-3:]}")
 
         return jsonify({'success': True, 'message': '✅ تم إرسال كود التحقق على واتساب'})
 

@@ -692,7 +692,7 @@ def get_verification_code(message):
         user_name += ' ' + message.from_user.last_name
     
     # توليد كود تحقق
-    code = generate_verification_code(user_id, user_name)
+    code = generate_verification_code()
     
     bot.send_message(message.chat.id,
                      "🔐 **كود التحقق الخاص بك:**\n\n"
@@ -1050,7 +1050,7 @@ def create_edfapay_invoice(user_id, amount, user_name):
             'hash': final_hash
         }
         
-        print(f"📤 EdfaPay Request: {payload}")
+        print(f"📤 EdfaPay Request: order_id={order_id}, amount={amount}")
         
         # إرسال الطلب (multipart/form-data)
         # استخدام API الإنتاج
@@ -1507,7 +1507,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
             'hash': final_hash
         }
         
-        print(f"📤 EdfaPay Invoice Request: {payload}")
+        print(f"📤 EdfaPay Invoice Request: order_id={order_id}, amount={amount}")
         
         response = requests.post(EDFAPAY_API_URL, data=payload, timeout=30)
         print(f"📤 EdfaPay Response: {response.status_code} - {response.text[:500]}")

@@ -203,11 +203,11 @@ def wallet_pay():
             'hash': final_hash
         }
         
-        print(f"📤 Wallet Pay Request: {payload}")
+        print(f"📤 Wallet Pay: order_id={order_id}, amount={amount_int}")
         
         response = requests.post(EDFAPAY_API_URL, data=payload, timeout=30)
         
-        print(f"📥 EdfaPay Raw Response: {response.text}")
+        print(f"📥 EdfaPay Response status: {response.status_code}")
         
         try:
             result = response.json()
