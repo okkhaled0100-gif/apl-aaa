@@ -463,12 +463,6 @@
         hideMsg('error1');
     }
 
-    function switchToTelegram() {
-        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
-        document.getElementById('telegramSection').classList.add('active');
-        document.getElementById('loginSubtitle').textContent = 'سجّل دخولك للمتابعة';
-        hideMsg('error1');
-    }
 
     function showErr(id, text) {
         var el = document.getElementById(id);
@@ -484,24 +478,6 @@
         document.getElementById(id).className = 'msg';
     }
 
-    // إرسال كود تلغرام
-    document.getElementById('userIdForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var userId = document.getElementById('userId').value.trim();
-        var btn = document.getElementById('sendCodeBtn');
-        if (!userId || !/^\d+$/.test(userId)) { showErr('error1', 'الرجاء إدخال رقم صحيح'); return; }
-        currentUserId = userId;
-        currentEmail = null;
-        currentPhone = null;
-        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
-        hideMsg('error1');
-        try {
-            var res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user_id: userId}) });
-            var data = await res.json();
-            if (data.success) { goToStep2(data.message); }
-            else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
-        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
-    });
 
     // إرسال كود جوال SMS
     document.getElementById('phoneForm').addEventListener('submit', async function(e) {
