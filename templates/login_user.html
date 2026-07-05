@@ -636,8 +636,10 @@
     }
 
     // أرقام فقط
-    ['userId','verifyCode','twoFACode','regVerifyCode'].forEach(function(id) {
-        document.getElementById(id).addEventListener('input', function() {
+    ['verifyCode','twoFACode','regVerifyCode'].forEach(function(id) {
+        var _el = document.getElementById(id);
+        if (!_el) return;
+        _el.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
     });
