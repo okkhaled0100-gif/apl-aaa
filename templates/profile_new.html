@@ -80,8 +80,8 @@
                 {% endif %}
             </div>
 
-            <!-- ربط تيليجرام -->
-            <div class="security-card {% if telegram_linked %}verified{% endif %}" {% if not telegram_linked %}onclick="openTelegramModal()"{% endif %}>
+            <!-- ربط تيليجرام (مخفي - أُلغي من جهة العميل) -->
+            <div class="security-card {% if telegram_linked %}verified{% endif %}" style="display:none" {% if not telegram_linked %}onclick="openTelegramModal()"{% endif %}>
                 <div class="sec-card-icon {% if telegram_linked %}done{% endif %}">
                     <i class="fab fa-telegram-plane"></i>
                 </div>
