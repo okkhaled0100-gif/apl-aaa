@@ -310,7 +310,7 @@
                         <input type="tel" id="loginPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
                     </div>
                     <div class="switch-link">
-                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
+                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a>
                     </div>
                     <button type="submit" id="sendCodePhoneBtn" class="btn-primary">📲 إرسال كود SMS</button>
                 </form>
@@ -318,24 +318,6 @@
                     <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
                 </div>
                 <div class="help-note">💬 سيصلك كود التحقق برسالة SMS</div>
-            </div>
-
-            <!-- تلغرام -->
-            <div id="telegramSection" class="section">
-                <form id="userIdForm">
-                    <div class="form-field">
-                        <label>🆔 رقم Telegram ID</label>
-                        <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric" autocomplete="off">
-                    </div>
-                    <div class="switch-link">
-                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToEmail()">📧 إيميل</a>
-                    </div>
-                    <button type="submit" id="sendCodeBtn" class="btn-primary">إرسال كود التحقق</button>
-                </form>
-                <div class="switch-link" style="margin-top:14px">
-                    <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
-                </div>
-                <div class="help-note">💡 لا تعرف رقمك؟ أرسل /id للبوت</div>
             </div>
 
             <!-- إيميل -->
@@ -346,7 +328,7 @@
                         <input type="email" id="loginEmail" placeholder="example@gmail.com" dir="ltr" autocomplete="email">
                     </div>
                     <div class="switch-link">
-                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
+                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a>
                     </div>
                     <button type="submit" id="sendCodeEmailBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
