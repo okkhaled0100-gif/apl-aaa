@@ -369,15 +369,20 @@ def api_cart_checkout():
             user_snapshot = user_snapshots[0]
             user_data = user_snapshot.to_dict()
             balance = float(user_data.get('balance', 0))
-            
-            # تحقق من الرصيد
-            if balance < total:
-                raise ValueError(f'رصيدك غير كافي! تحتاج {total - balance:.2f} ر.س إضافية')
-            
-            # حدّث الرصيد الجديد
-            new_balance = balance - total
+            bonus = float(user_data.get('balance_bonus', 0) or 0)
+
+            # تحقق من الرصيد (الحقيقي + المكافأة)
+            if balance + bonus < total:
+                raise ValueError(f'رصيدك غير كافي! تحتاج {total - balance - bonus:.2f} ر.س إضافية')
+
+            # الخصم: من الحقيقي أول، ثم المكافأة
+            from_balance = min(balance, total)
+            from_bonus = total - from_balance
+            new_balance = balance - from_balance
+            new_bonus = bonus - from_bonus
             transaction.update(user_ref, {
                 'balance': new_balance,
+                'balance_bonus': new_bonus,
                 'last_purchase': firestore.SERVER_TIMESTAMP
             })
             

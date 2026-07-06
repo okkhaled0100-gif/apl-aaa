@@ -1448,9 +1448,13 @@ def submit_withdraw():
         if SECURITY_LOGGING:
             log_withdrawal(user_id, amount, method_display)
         
-        # خصم المبلغ من الرصيد
+        # قراءة المكافأة قبل حذفها (للتنبيه)
+        _deleted_bonus = float(user_data.get('balance_bonus', 0) or 0)
+
+        # خصم المبلغ من الرصيد + حذف رصيد المكافأة عند السحب
         user_ref.update({
-            'balance': firestore.Increment(-amount)
+            'balance': firestore.Increment(-amount),
+            'balance_bonus': 0
         })
         
         # إرسال إشعار للمستخدم

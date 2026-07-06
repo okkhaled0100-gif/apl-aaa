@@ -1155,16 +1155,22 @@ def buy_item():
         user_data = user_doc.to_dict()
         current_balance = user_data.get('balance', 0.0)
 
-        if current_balance < price:
+        _cbonus = float(user_data.get('balance_bonus', 0) or 0)
+        if current_balance + _cbonus < price:
             return {'status': 'error', 'message': 'رصيدك غير كافي للشراء!'}
 
         # 4. تنفيذ العملية (خصم + تحديث حالة المنتج)
         # نستخدم batch لضمان تنفيذ كل الخطوات معاً أو فشلها معاً
         batch = db.batch()
 
-        # خصم الرصيد
-        new_balance = current_balance - price
-        batch.update(user_ref, {'balance': new_balance})
+        # خصم الرصيد: من الحقيقي أول، ثم المكافأة
+        _cb = float(user_data.get('balance', 0) or 0)
+        _bo = float(user_data.get('balance_bonus', 0) or 0)
+        _from_balance = min(_cb, price)
+        _from_bonus = price - _from_balance
+        new_balance = _cb - _from_balance
+        new_bonus = _bo - _from_bonus
+        batch.update(user_ref, {'balance': new_balance, 'balance_bonus': new_bonus})
 
         # تحديث المنتج كمباع (تأكد من استخدام document reference الصحيح)
         product_doc_ref = db.collection('products').document(item_id)
