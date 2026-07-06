@@ -412,7 +412,7 @@
                     <div style="margin-bottom: 20px;">
                         <label class="form-label"> المبلغ المراد شحنه</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required
+                            <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required oninput="updateBonusDisplay()"
                                    class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
                             <span style="color: #b2bec3; font-size: 16px;">ريال</span>
                         </div>
@@ -423,6 +423,9 @@
                         <button type="button" class="amount-btn" onclick="setAmount(50)">50</button>
                         <button type="button" class="amount-btn" onclick="setAmount(100)">100</button>
                         <button type="button" class="amount-btn" onclick="setAmount(200)">200</button>
+                    </div>
+                    <div id="bonusDisplay" style="display:none; margin:14px 0; padding:12px 16px; background:rgba(0,184,148,0.12); border:1px solid rgba(0,184,148,0.4); border-radius:12px; text-align:center; color:#00b894; font-weight:bold;">
+                        🎁 مكافأة: <span id="bonusAmount">0</span> ريال · الإجمالي: <span id="totalAmount">0</span> ريال
                     </div>
                     <button type="submit" id="payBtn" class="pay-btn">
                          إتمام الدفع
@@ -513,8 +516,28 @@
 {% block extra_js %}
 <script>
     const userId = '{{ user_id }}';
+    function calcBonus(amount) {
+        var tiers = [[200,20],[150,15],[100,10],[50,5]];
+        for (var i = 0; i < tiers.length; i++) {
+            if (amount >= tiers[i][0]) return Math.min(tiers[i][1], 20);
+        }
+        return 0;
+    }
+    function updateBonusDisplay() {
+        var amount = parseFloat(document.getElementById('chargeAmount').value) || 0;
+        var bonus = calcBonus(amount);
+        var box = document.getElementById('bonusDisplay');
+        if (bonus > 0) {
+            document.getElementById('bonusAmount').textContent = bonus;
+            document.getElementById('totalAmount').textContent = (amount + bonus);
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
     function setAmount(amount) {
         document.getElementById('chargeAmount').value = amount;
+        updateBonusDisplay();
     }
     async function processPayment(event) {
         event.preventDefault();
