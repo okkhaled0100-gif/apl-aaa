@@ -459,9 +459,17 @@
                         <button type="button" class="amount-btn" onclick="setLinkAmount(100)">100</button>
                         <button type="button" class="amount-btn" onclick="setLinkAmount(200)">200</button>
                     </div>
+                    {% if email_verified %}
                     <button type="submit" id="linkBtn" class="pay-btn">
                         <span id="linkBtnText">إنشاء رابط قابل للمشاركة</span>
                     </button>
+                    {% else %}
+                    <div style="background:rgba(253,203,110,0.12); border:1px solid rgba(253,203,110,0.4); border-radius:12px; padding:16px; text-align:center; margin-top:10px;">
+                        <div style="color:#fdcb6e; font-weight:bold; margin-bottom:8px;">⚠️ وثّق بريدك الإلكتروني أولاً</div>
+                        <div style="color:#b2bec3; font-size:13px; margin-bottom:12px;">لإنشاء روابط الدفع، يجب توثيق بريدك الإلكتروني لاستقبال إشعارات الدفعات.</div>
+                        <a href="/profile" style="display:inline-block; background:#6c5ce7; color:#fff; padding:10px 24px; border-radius:10px; text-decoration:none; font-weight:bold;">توثيق البريد الآن</a>
+                    </div>
+                    {% endif %}
                 </form>
                 <p style="text-align: center; color: #999; font-size: 13px; margin-top: 15px;">
                     💡 أنشئ رابطاً وشاركه مع أصدقائك. يصلح الرابط لمدة ساعة واحدة فقط

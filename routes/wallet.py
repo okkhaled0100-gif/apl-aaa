@@ -56,6 +56,15 @@ def wallet_page():
     
     # جلب الرصيد
     balance = get_balance(user_id)
+
+    # جلب حالة توثيق الإيميل (لتفعيل/تعطيل إنشاء الروابط)
+    email_verified = False
+    try:
+        _udoc = db.collection('users').document(str(user_id)).get()
+        if _udoc.exists:
+            email_verified = bool(_udoc.to_dict().get('email_verified', False))
+    except Exception:
+        pass
     
     # جلب المعاملات من Firebase
     transactions = []
@@ -134,7 +143,8 @@ def wallet_page():
                           transactions=transactions,
                           total_charges=total_charges,
                           charges_count=charges_count,
-                          purchases_count=purchases_count)
+                          purchases_count=purchases_count,
+                          email_verified=email_verified)
 
 
 @wallet_bp.route('/wallet/pay', methods=['POST'])

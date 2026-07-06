@@ -94,6 +94,15 @@ def create_recharge_link():
         amount = str(data.get('amount', '')).strip()
         user_id = get_session_user_id()
 
+        # حماية: يجب توثيق الإيميل لإنشاء روابط الدفع (لاستقبال الإشعارات)
+        try:
+            _udoc = db.collection('users').document(str(user_id)).get()
+            if not (_udoc.exists and _udoc.to_dict().get('email_verified', False)):
+                return jsonify({'success': False, 'error': 'يجب توثيق بريدك الإلكتروني أولاً لإنشاء روابط الدفع'})
+        except Exception as _e:
+            logger.error(f"خطأ في التحقق من الإيميل: {_e}")
+            return jsonify({'success': False, 'error': 'تعذّر التحقق من توثيق البريد'})
+
         # جلب اسم التاجر الحقيقي من Firestore (name > first_name > fallback)
         user_name = None
         try:

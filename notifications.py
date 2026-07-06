@@ -581,3 +581,78 @@ def send_order_email(to_email, order_items, total_price, new_balance=None):
     # إرسال في thread منفصل حتى لا يبطئ الاستجابة
     threading.Thread(target=_send, daemon=True).start()
 
+
+
+
+def send_payment_received_email(to_email, amount, invoice_id, new_balance=None, product_name=''):
+    """إشعار صاحب رابط الدفع بوصول دفعة (بديل إشعار البوت)."""
+    def _send():
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD
+            if not SMTP_EMAIL or not SMTP_PASSWORD or not to_email:
+                return
+            product_section = ""
+            if product_name:
+                product_section = f'''
+                        <div style="background:#f0fff4;border-radius:10px;padding:12px;text-align:center;margin-top:12px;">
+                            <span style="color:#888;font-size:13px;">📦 المنتج:</span>
+                            <span style="font-size:15px;font-weight:700;color:#00b894;margin-right:6px;">{product_name}</span>
+                        </div>'''
+            balance_section = ""
+            if new_balance is not None:
+                balance_section = f'''
+                        <div style="background:#f0f0ff;border-radius:10px;padding:14px;text-align:center;margin-top:12px;">
+                            <span style="color:#888;font-size:13px;">💳 رصيدك الحالي:</span>
+                            <span style="font-size:20px;font-weight:800;color:#6c5ce7;margin-right:8px;">{new_balance:.2f} ر.س</span>
+                        </div>'''
+            html = f'''
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head><meta charset="UTF-8"></head>
+            <body style="margin:0;padding:0;background:#f0f2f5;font-family:Tahoma,sans-serif;">
+                <div style="max-width:550px;margin:30px auto;background:#fff;border-radius:20px;overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#00b894,#00a86b);padding:30px;text-align:center;">
+                        <h1 style="color:#fff;margin:0;font-size:26px;">💰 وصلتك دفعة جديدة!</h1>
+                        <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">عبر رابط الدفع الخاص بك في TR Store</p>
+                    </div>
+                    <div style="padding:24px;">
+                        <div style="background:linear-gradient(135deg,#00b894,#00a86b);border-radius:12px;padding:16px;text-align:center;">
+                            <span style="color:rgba(255,255,255,0.8);font-size:13px;">المبلغ المستلم</span><br>
+                            <span style="color:#fff;font-size:28px;font-weight:800;">{amount:.2f} ر.س</span>
+                        </div>
+                        {product_section}
+                        <div style="text-align:center;margin-top:12px;color:#888;font-size:13px;">🧾 رقم الفاتورة: {invoice_id}</div>
+                        {balance_section}
+                        <div style="background:#e8f5e9;border-radius:10px;padding:12px;text-align:center;margin-top:16px;">
+                            <span style="font-size:14px;color:#2e7d32;">✅ تم إضافة المبلغ لرصيدك</span>
+                        </div>
+                    </div>
+                    <div style="background:#f8f9fa;padding:16px;text-align:center;border-top:1px solid #eee;">
+                        <p style="color:#ccc;font-size:11px;margin:6px 0 0;">TR Store © 2026</p>
+                    </div>
+                </div>
+            </body>
+            </html>'''
+            msg = MIMEMultipart('alternative')
+            msg['From'] = f"TR Store <{SMTP_EMAIL}>"
+            msg['To'] = to_email
+            msg['Subject'] = f"💰 وصلتك دفعة {amount:.0f} ر.س | TR Store"
+            msg.attach(MIMEText("وصلتك دفعة جديدة! افتح الرسالة للتفاصيل.", 'plain', 'utf-8'))
+            msg.attach(MIMEText(html, 'html', 'utf-8'))
+            try:
+                with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                    logger.info(f"✅ تم إرسال إيميل الدفعة إلى: {to_email}")
+            except Exception:
+                with smtplib.SMTP(SMTP_SERVER, 587, timeout=15) as server:
+                    server.ehlo(); server.starttls(); server.ehlo()
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                    logger.info(f"✅ تم إرسال إيميل الدفعة (TLS) إلى: {to_email}")
+        except Exception as e:
+            logger.error(f"⚠️ فشل إرسال إيميل الدفعة إلى {to_email}: {e}")
+    threading.Thread(target=_send, daemon=True).start()

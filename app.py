@@ -42,7 +42,7 @@ from utils import sanitize, regenerate_session
 # استيراد نظام الإشعارات
 from notifications import (
     notify_new_charge, notify_payment_pending, notify_payment_success,
-    notify_payment_failed, send_order_email
+    notify_payment_failed, send_order_email, send_payment_received_email
 )
 
 # استيراد أدوات التشفير
@@ -1662,18 +1662,32 @@ _محاولة اختراق واضحة!_
                         if not customer_phone:
                             customer_phone = 'غير محدد'
                         
-                        # رسالة للتاجر (بدون رقم العميل)
-                        bot.send_message(
-                            int(user_id),
-                            "💰 *تم استلام دفعة جديدة!*\n\n"
-                            f"🧾 رقم الفاتورة: `{invoice_id}`\n"
-                            f"💵 المبلغ: {pay_amount} ريال\n\n"
-                            f"💳 رصيدك الحالي: {new_balance} ريال\n\n"
-                            "✅ تم إضافة المبلغ لرصيدك",
-                            parse_mode="Markdown"
-                        )
+                        # إشعار صاحب الرابط عبر الإيميل (بدل البوت)
+                        _merchant_email = ''
+                        try:
+                            _u_doc = db.collection('users').document(str(user_id)).get()
+                            if _u_doc.exists:
+                                _ud = _u_doc.to_dict()
+                                if _ud.get('email_verified'):
+                                    _merchant_email = _ud.get('email', '')
+                        except Exception:
+                            pass
+                        _prod_name = ''
+                        try:
+                            if invoice_id in merchant_invoices:
+                                _prod_name = merchant_invoices[invoice_id].get('product_name', '')
+                            if not _prod_name:
+                                _inv = db.collection('merchant_invoices').document(invoice_id).get()
+                                if _inv.exists:
+                                    _prod_name = _inv.to_dict().get('product_name', '')
+                        except Exception:
+                            pass
+                        if _merchant_email:
+                            send_payment_received_email(_merchant_email, pay_amount, invoice_id, new_balance, _prod_name)
+                        else:
+                            print(f"⚠️ صاحب الرابط {user_id} بلا إيميل موثّق - لم يُرسل إشعار")
                     except Exception as e:
-                        print(f"⚠️ خطأ في إرسال إشعار للتاجر: {e}")
+                        print(f"⚠️ خطأ في إشعار صاحب الرابط: {e}")
                     
                     # إشعار المالك (مفصّل للحماية والتوثيق)
                     try:
