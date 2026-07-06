@@ -34,6 +34,7 @@ from config import (
 )
 from firebase_utils import (
     query_where, get_balance, add_balance, add_product,
+    calc_bonus, get_bonus, add_bonus,
     get_categories, get_charge_key, use_charge_key, get_user_cart, get_all_products_for_store, get_header_settings
 )
 from utils import sanitize, regenerate_session
@@ -1580,6 +1581,12 @@ _محاولة اختراق واضحة!_
                 # ✅ إضافة الرصيد
                 add_balance(user_id, pay_amount)
                 print(f"✅ تم إضافة {pay_amount} ريال للمستخدم {user_id}")
+
+                # 🎁 مكافأة الشحن الذاتي فقط (ليس روابط الدفع/فواتير التجار)
+                if not is_merchant_invoice:
+                    _bonus = calc_bonus(pay_amount)
+                    if _bonus > 0:
+                        add_bonus(user_id, _bonus)
                 
                 # ✅ إشعار المالك بالشحن
                 notify_new_charge(user_id, pay_amount, method='edfapay')

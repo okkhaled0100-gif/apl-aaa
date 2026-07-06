@@ -1328,3 +1328,72 @@ def get_ledger_transaction_by_id(owner_id, transaction_id_partial):
         print(f"❌ خطأ في جلب العملية: {e}")
         return None
 
+
+
+# ===== نظام المكافآت =====
+def calc_bonus(amount, tiers_str=None, bonus_max=None):
+    """حساب مكافأة الشحن حسب أعلى شريحة يصلها المبلغ (بحد أقصى)."""
+    try:
+        from config import BONUS_TIERS, BONUS_MAX
+    except Exception:
+        BONUS_TIERS, BONUS_MAX = "50:5,100:10,150:15,200:20", 20
+    tiers_str = tiers_str or BONUS_TIERS
+    bonus_max = bonus_max if bonus_max is not None else BONUS_MAX
+    try:
+        amount = float(amount)
+        tiers = []
+        for pair in tiers_str.split(','):
+            amt, bon = pair.split(':')
+            tiers.append((int(amt), int(bon)))
+        tiers.sort(reverse=True)
+        bonus = 0
+        for tier_amt, tier_bon in tiers:
+            if amount >= tier_amt:
+                bonus = tier_bon
+                break
+        return min(bonus, bonus_max)
+    except Exception:
+        return 0
+
+
+def get_bonus(user_id):
+    """جلب رصيد المكافأة (balance_bonus)."""
+    try:
+        if not db:
+            return 0.0
+        uid = str(user_id)
+        doc = db.collection('users').document(uid).get()
+        if doc.exists:
+            return float(doc.to_dict().get('balance_bonus', 0.0) or 0.0)
+        return 0.0
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب المكافأة: {e}")
+        return 0.0
+
+
+def add_bonus(user_id, amount, description='مكافأة شحن'):
+    """إضافة رصيد مكافأة - منفصل تماماً عن balance."""
+    uid = str(user_id)
+    try:
+        if db and firestore:
+            transaction = db.transaction()
+            doc_ref = db.collection('users').document(uid)
+
+            @firestore.transactional
+            def update_bonus_txn(txn, ref):
+                snapshot = ref.get(transaction=txn)
+                current = snapshot.get('balance_bonus') if snapshot.exists else 0.0
+                current = float(current or 0.0)
+                new_bonus = current + float(amount)
+                txn.set(ref, {
+                    'balance_bonus': new_bonus,
+                    'updated_at': firestore.SERVER_TIMESTAMP
+                }, merge=True)
+                return current, new_bonus
+
+            current, new_bonus = update_bonus_txn(transaction, doc_ref)
+            print(f"🎁 مكافأة {amount} ريال للمستخدم {uid} (المكافأة الآن: {new_bonus})")
+            return new_bonus
+    except Exception as e:
+        print(f"❌ خطأ في إضافة المكافأة: {e}")
+    return get_bonus(uid)
