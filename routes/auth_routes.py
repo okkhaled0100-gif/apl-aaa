@@ -10,6 +10,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD
+# استيراد FieldFilter لتفادي تحذير Firestore (positional args)
+try:
+    from google.cloud.firestore_v1.base_query import FieldFilter
+except ImportError:
+    FieldFilter = None
 
 # === Authentica API (WhatsApp/SMS OTP) ===
 try:
@@ -396,7 +401,7 @@ def send_code_email():
 
     try:
         users_ref = db.collection('users')
-        query = users_ref.where('email', '==', email).limit(1)
+        query = users_ref.where(filter=FieldFilter('email', '==', email)).limit(1)
         results = list(query.stream())
 
         if results:
@@ -465,7 +470,7 @@ def register_send_code():
 
     try:
         # تأكد الرقم غير مسجل
-        query = db.collection('users').where('phone', '==', phone).limit(1)
+        query = db.collection('users').where(filter=FieldFilter('phone', '==', phone)).limit(1)
         results = list(query.stream())
         if results:
             return jsonify({'success': False, 'message': 'هذا الرقم مسجل بالفعل. يمكنك تسجيل الدخول مباشرة'})
@@ -615,7 +620,7 @@ def login_email():
         return jsonify({'success': False, 'message': 'الرجاء إدخال البريد والكود'})
     
     try:
-        query = db.collection('users').where('email', '==', email).limit(1)
+        query = db.collection('users').where(filter=FieldFilter('email', '==', email)).limit(1)
         results = list(query.stream())
         
         if not results:
@@ -709,7 +714,7 @@ def send_code_phone():
             search_phones.append('+' + clean)
 
         for sp in search_phones:
-            query = users_ref.where('phone', '==', sp).limit(1)
+            query = users_ref.where(filter=FieldFilter('phone', '==', sp)).limit(1)
             results = list(query.stream())
             if results:
                 user_doc = results[0]
@@ -819,7 +824,7 @@ def login_phone():
 
             user_doc = None
             for sp in search_phones:
-                query = db.collection('users').where('phone', '==', sp).limit(1)
+                query = db.collection('users').where(filter=FieldFilter('phone', '==', sp)).limit(1)
                 results = list(query.stream())
                 if results:
                     user_doc = results[0]
