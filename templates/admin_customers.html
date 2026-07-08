@@ -42,7 +42,7 @@
 </div>
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <input type="text" id="searchInput" placeholder=" البحث بالاسم أو ID..." 
+        <input type="text" id="searchInput" placeholder=" البحث بالاسم أو الجوال أو ID..." 
                style="flex: 1; min-width: 200px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
         <select id="sortBy" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="balance_desc">الرصيد (الأعلى)</option>
@@ -51,6 +51,7 @@
             <option value="name_asc">الاسم (أ-ي)</option>
         </select>
         <button class="btn btn-primary" onclick="loadCustomers()">بحث</button>
+        <button class="btn btn-success" onclick="openAddCustomer()">➕ إضافة مستخدم</button>
     </div>
 </div>
 <div class="card">
@@ -89,10 +90,70 @@
         </div>
     </div>
 </div>
+
+<!-- نافذة إضافة مستخدم -->
+<div id="addCustomerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
+    <div style="max-width: 450px; margin: 60px auto; padding: 20px;">
+        <div class="card" style="position: relative;">
+            <button onclick="closeAddCustomer()" style="position: absolute; left: 15px; top: 15px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✕</button>
+            <h3 style="margin: 0 0 20px; color: white;">➕ إضافة مستخدم جديد</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px;">الاسم <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="newCustName" placeholder="اسم المستخدم" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px;">رقم الجوال <span style="color: var(--danger);">*</span></label>
+                <input type="tel" id="newCustPhone" placeholder="05xxxxxxxx" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white; text-align: left; direction: ltr;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px;">البريد الإلكتروني (اختياري)</label>
+                <input type="email" id="newCustEmail" placeholder="email@example.com" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white; text-align: left; direction: ltr;">
+            </div>
+            <button class="btn btn-success" onclick="submitAddCustomer()" style="width: 100%;" id="addCustBtn">إضافة المستخدم</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 {% block extra_js %}
 <script>
     let allCustomers = [];
+    function openAddCustomer() {
+        document.getElementById('newCustName').value = '';
+        document.getElementById('newCustPhone').value = '';
+        document.getElementById('newCustEmail').value = '';
+        document.getElementById('addCustomerModal').style.display = 'block';
+    }
+    function closeAddCustomer() {
+        document.getElementById('addCustomerModal').style.display = 'none';
+    }
+    async function submitAddCustomer() {
+        const name = document.getElementById('newCustName').value.trim();
+        const phone = document.getElementById('newCustPhone').value.trim();
+        const email = document.getElementById('newCustEmail').value.trim();
+        if (!name) { showToast('الاسم مطلوب', 'error'); return; }
+        if (!phone) { showToast('رقم الجوال مطلوب', 'error'); return; }
+        const btn = document.getElementById('addCustBtn');
+        btn.disabled = true; btn.textContent = 'جاري الإضافة...';
+        try {
+            const res = await fetch('/api/admin/add_customer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, email })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('تم إضافة المستخدم بنجاح', 'success');
+                closeAddCustomer();
+                loadCustomers();
+            } else {
+                showToast(data.message || 'فشل الإضافة', 'error');
+            }
+        } catch (e) {
+            showToast('حدث خطأ في الاتصال', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'إضافة المستخدم';
+        }
+    }
     async function loadCustomers() {
         const tbody = document.getElementById('customersTable');
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
@@ -123,7 +184,8 @@
         let filtered = allCustomers.filter(c => {
             const name = (c.name || c.username || c.first_name || '').toLowerCase();
             const id = (c.user_id || c.id || '').toString();
-            return name.includes(search) || id.includes(search);
+            const phone = (c.phone || '').toString();
+            return name.includes(search) || id.includes(search) || phone.includes(search);
         });
         filtered.sort((a, b) => {
             switch (sortBy) {
@@ -156,6 +218,7 @@
                             <div>
                                 <div style="font-weight: 600;">${name}</div>
                                 <div style="font-size: 12px; color: var(--muted);">#${userId}</div>
+                                ${c.phone ? `<div style="font-size: 12px; color: var(--success);">📱 ${c.phone}</div>` : ''}
                             </div>
                         </div>
                     </td>

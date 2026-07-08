@@ -1732,6 +1732,53 @@ def api_set_display_settings():
 
 # ===================== APIs العملاء =====================
 
+@admin_bp.route('/api/admin/add_customer', methods=['POST'])
+def api_add_customer():
+    """إضافة مستخدم جديد يدوياً من لوحة المالك"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        data = request.get_json() or {}
+        name = str(data.get('name', '')).strip()
+        phone = str(data.get('phone', '')).strip()
+        email = str(data.get('email', '')).strip().lower()
+        if not name:
+            return jsonify({'status': 'error', 'message': 'الاسم مطلوب'})
+        phone = phone.replace(' ', '').replace('-', '').replace('+', '')
+        if phone.startswith('05') and len(phone) == 10:
+            phone = '966' + phone[1:]
+        elif phone.startswith('5') and len(phone) == 9:
+            phone = '966' + phone
+        elif phone.startswith('00966'):
+            phone = phone[2:]
+        if not phone.startswith('966') or len(phone) != 12:
+            return jsonify({'status': 'error', 'message': 'رقم الجوال غير صحيح (مثال: 05xxxxxxxx)'})
+        existing = db.collection('users').where(filter=FieldFilter('phone', '==', phone)).limit(1).get()
+        if len(list(existing)) > 0:
+            return jsonify({'status': 'error', 'message': 'رقم الجوال مسجّل مسبقاً'})
+        import uuid
+        new_user_id = str(uuid.uuid4())[:12]
+        new_user = {
+            'phone': phone,
+            'username': name,
+            'first_name': name,
+            'name': name,
+            'balance': 0.0,
+            'created_at': time.time(),
+            'registered_via': 'admin',
+            'phone_verified': True,
+            'phone_verified_at': time.time()
+        }
+        if email:
+            new_user['email'] = email
+            new_user['email_verified'] = True
+        db.collection('users').document(new_user_id).set(new_user)
+        return jsonify({'status': 'success', 'message': 'تم إضافة المستخدم', 'user_id': new_user_id})
+    except Exception as e:
+        logger.error(f"Error adding customer: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ أثناء الإضافة'})
+
+
 @admin_bp.route('/api/admin/get_customers')
 def api_get_customers():
     """جلب جميع العملاء مع إحصائياتهم"""
@@ -1781,6 +1828,7 @@ def api_get_customers():
                     'name': user_data.get('name') or user_data.get('username') or user_data.get('first_name'),
                     'username': user_data.get('username'),
                     'first_name': user_data.get('first_name'),
+                    'phone': user_data.get('verified_phone') or user_data.get('phone', ''),
                     'balance': balance,
                     'orders_count': orders_count,
                     'total_spent': user_spent,
