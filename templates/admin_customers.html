@@ -446,7 +446,7 @@
                 })
             });
             const data = await res.json();
-            if (data.success) {
+            if (data.status === 'success' || data.success) {
                 showToast(` تم إضافة ${amount} ر.س لـ ${name}`);
                 loadCustomers();
             } else {
