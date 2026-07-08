@@ -1397,3 +1397,40 @@ def add_bonus(user_id, amount, description='مكافأة شحن'):
     except Exception as e:
         print(f"❌ خطأ في إضافة المكافأة: {e}")
     return get_bonus(uid)
+
+
+# ===================== نظام مفاتيح التحكم (Feature Toggles) =====================
+def get_toggle(key, default=True):
+    """قراءة حالة مفتاح تحكم من settings/toggles (افتراضي: مفعّل)"""
+    try:
+        if not db:
+            return default
+        doc = db.collection('settings').document('toggles').get()
+        if doc.exists:
+            return bool(doc.to_dict().get(key, default))
+    except Exception as e:
+        print(f"⚠️ خطأ في قراءة المفتاح {key}: {e}")
+    return default
+
+def get_all_toggles():
+    """قراءة كل المفاتيح (للصفحة)"""
+    try:
+        if not db:
+            return {}
+        doc = db.collection('settings').document('toggles').get()
+        if doc.exists:
+            return doc.to_dict()
+    except Exception as e:
+        print(f"⚠️ خطأ في قراءة المفاتيح: {e}")
+    return {}
+
+def set_toggle(key, value):
+    """تحديث حالة مفتاح (merge لعدم مسح الباقي)"""
+    try:
+        if not db:
+            return False
+        db.collection('settings').document('toggles').set({key: bool(value)}, merge=True)
+        return True
+    except Exception as e:
+        print(f"⚠️ خطأ في تحديث المفتاح {key}: {e}")
+        return False

@@ -3,6 +3,11 @@ Profile Routes - مسارات صفحة الحساب الشخصي
 """
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db, logger, bot, ADMIN_ID, BOT_USERNAME
+# استيراد مفاتيح التحكم
+try:
+    from firebase_utils import get_toggle
+except ImportError:
+    get_toggle = lambda key, default=True: default
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 from telebot import types
@@ -388,6 +393,7 @@ def profile():
             can_withdraw_normal=can_withdraw_normal,
             normal_withdraw_amount=normal_withdraw_amount,
             instant_withdraw_amount=instant_withdraw_amount,
+            instant_enabled=get_toggle('instant_withdraw', True),
             frozen_balance=frozen_balance,
             min_minutes_left=minutes_until_next,
             minutes_until_withdraw=minutes_until_next,
@@ -1292,6 +1298,10 @@ def submit_withdraw():
         # التحقق من البيانات
         if withdraw_type not in ['normal', 'instant']:
             return jsonify({'success': False, 'message': 'نوع السحب غير صحيح'}), 400
+
+        # فحص مفتاح التحكم: السحب الفوري معطّل؟
+        if withdraw_type == 'instant' and not get_toggle('instant_withdraw', True):
+            return jsonify({'success': False, 'message': 'السحب الفوري معطّل حالياً'}), 403
         
         if method not in ['wallet', 'bank']:
             return jsonify({'success': False, 'message': 'طريقة السحب غير صحيحة'}), 400

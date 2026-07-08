@@ -1,0 +1,140 @@
+{% extends "admin_base.html" %}
+{% block title %}مفاتيح التحكم - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    .toggle-card {
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-right: 3px solid var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+    .toggle-card.off { border-right-color: var(--danger); opacity: 0.85; }
+    .toggle-info { flex: 1; }
+    .toggle-info .title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .toggle-info .desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .toggle-status { font-size: 12px; font-weight: 600; margin-top: 6px; }
+    .toggle-status.on { color: var(--success); }
+    .toggle-status.off { color: var(--danger); }
+    .switch { position: relative; display: inline-block; width: 56px; height: 30px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background: rgba(255,255,255,0.15); transition: .3s; border-radius: 30px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 22px; width: 22px;
+        right: 4px; bottom: 4px; background: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background: var(--success); }
+    input:checked + .slider:before { transform: translateX(-26px); }
+    input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="top-bar">
+    <h1>⚙️ مفاتيح التحكم</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-secondary" onclick="loadToggles()">تحديث</button>
+    </div>
+</div>
+<div class="card">
+    <p style="color: var(--muted); font-size: 14px; margin: 0 0 10px;">
+        تحكّم في تفعيل أو تعطيل ميزات الموقع مباشرة. التغيير يطبّق فوراً بدون إعادة نشر.
+    </p>
+</div>
+<div id="togglesContainer">
+    <div style="text-align: center; padding: 40px;">
+        <div class="spinner" style="margin: 0 auto;"></div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    const TOGGLES = [
+        {
+            key: 'instant_withdraw',
+            title: 'السحب الفوري',
+            desc: 'السماح للعملاء بالسحب الفوري (رسوم 8%). عند التعطيل، يختفي خيار السحب الفوري من صفحة العميل.',
+            default: true
+        }
+    ];
+    let currentToggles = {};
+    async function loadToggles() {
+        const container = document.getElementById('togglesContainer');
+        try {
+            const res = await fetch('/api/admin/get_toggles');
+            const data = await res.json();
+            if (data.status === 'success') {
+                currentToggles = data.toggles || {};
+                renderToggles();
+            } else {
+                container.innerHTML = '<div class="card" style="color: var(--danger);">فشل تحميل المفاتيح</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="card" style="color: var(--danger);">خطأ في الاتصال</div>';
+        }
+    }
+    function renderToggles() {
+        const container = document.getElementById('togglesContainer');
+        container.innerHTML = TOGGLES.map(t => {
+            const isOn = currentToggles.hasOwnProperty(t.key) ? currentToggles[t.key] : t.default;
+            return `
+                <div class="toggle-card ${isOn ? '' : 'off'}" id="card_${t.key}">
+                    <div class="toggle-info">
+                        <div class="title">${t.title}</div>
+                        <div class="desc">${t.desc}</div>
+                        <div class="toggle-status ${isOn ? 'on' : 'off'}" id="status_${t.key}">
+                            ${isOn ? '● مُفعّل' : '● معطّل'}
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" ${isOn ? 'checked' : ''} onchange="toggleSwitch('${t.key}', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+    async function toggleSwitch(key, el) {
+        const newValue = el.checked;
+        el.disabled = true;
+        try {
+            const res = await fetch('/api/admin/set_toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value: newValue })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                currentToggles[key] = newValue;
+                const card = document.getElementById('card_' + key);
+                const status = document.getElementById('status_' + key);
+                if (newValue) {
+                    card.classList.remove('off');
+                    status.className = 'toggle-status on';
+                    status.textContent = '● مُفعّل';
+                } else {
+                    card.classList.add('off');
+                    status.className = 'toggle-status off';
+                    status.textContent = '● معطّل';
+                }
+                showToast(newValue ? 'تم التفعيل' : 'تم التعطيل', 'success');
+            } else {
+                el.checked = !newValue;
+                showToast(data.message || 'فشل التحديث', 'error');
+            }
+        } catch (e) {
+            el.checked = !newValue;
+            showToast('خطأ في الاتصال', 'error');
+        } finally {
+            el.disabled = false;
+        }
+    }
+    loadToggles();
+</script>
+{% endblock %}

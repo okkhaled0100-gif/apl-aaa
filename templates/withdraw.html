@@ -912,6 +912,7 @@
                     <span class="fee">رسوم 5.5%</span>
                     <span class="btn-hint">بعد 72 ساعة</span>
                 </button>
+                {% if instant_enabled %}
                 <button class="withdraw-btn instant" onclick="openWithdrawModal('instant')" {% if balance <= 0 %}disabled{% endif %}>
                     <span class="fast-badge">⚡ سريع</span>
                     <i class="fas fa-bolt"></i>
@@ -919,6 +920,7 @@
                     <span class="fee">رسوم 8%</span>
                     <span class="btn-hint">متاح الآن</span>
                 </button>
+                {% endif %}
             </div>
             
             {% if frozen_charges and frozen_charges|length > 0 %}

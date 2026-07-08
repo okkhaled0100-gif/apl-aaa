@@ -482,6 +482,39 @@ def admin_invoices():
         return redirect('/dashboard')
     return render_template('admin_invoices_new.html', active_page='invoices')
 
+@admin_bp.route('/admin/toggles')
+def admin_toggles():
+    """صفحة مفاتيح التحكم"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_toggles.html', active_page='toggles')
+
+@admin_bp.route('/api/admin/get_toggles')
+def api_get_toggles():
+    """جلب حالات كل المفاتيح"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    from firebase_utils import get_all_toggles
+    toggles = get_all_toggles()
+    return jsonify({'status': 'success', 'toggles': toggles})
+
+@admin_bp.route('/api/admin/set_toggle', methods=['POST'])
+def api_set_toggle():
+    """تحديث حالة مفتاح"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    from firebase_utils import set_toggle
+    data = request.get_json() or {}
+    key = str(data.get('key', '')).strip()
+    value = bool(data.get('value', True))
+    if not key:
+        return jsonify({'status': 'error', 'message': 'المفتاح مطلوب'})
+    ok = set_toggle(key, value)
+    if ok:
+        return jsonify({'status': 'success', 'key': key, 'value': value})
+    return jsonify({'status': 'error', 'message': 'فشل التحديث'})
+
+
 @admin_bp.route('/admin/customers')
 def admin_customers():
     """صفحة إدارة العملاء"""
