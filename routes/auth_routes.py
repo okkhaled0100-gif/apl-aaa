@@ -10,6 +10,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD
+# استيراد مفاتيح التحكم
+try:
+    from firebase_utils import get_toggle
+except ImportError:
+    get_toggle = lambda key, default=True: default
 # استيراد FieldFilter لتفادي تحذير Firestore (positional args)
 try:
     from google.cloud.firestore_v1.base_query import FieldFilter
@@ -445,6 +450,9 @@ _pending_registrations = {}  # {phone: {'code': '...', 'name': '...', 'time': ..
 @auth_bp.route('/api/auth/register-send-code', methods=['POST'])
 def register_send_code():
     """إرسال كود التحقق عبر واتساب لتسجيل حساب جديد"""
+    # فحص مفتاح التحكم: تسجيل الجدد معطّل؟
+    if not get_toggle('new_registration', True):
+        return jsonify({'success': False, 'message': 'التسجيل متوقف مؤقتاً. حاول لاحقاً'})
     allowed, error_msg = check_login_rate_limit()
     if not allowed:
         return jsonify({'success': False, 'message': error_msg})
@@ -512,6 +520,9 @@ def register_send_code():
 @auth_bp.route('/api/auth/register-verify', methods=['POST'])
 def register_verify():
     """التحقق من الكود وإنشاء حساب جديد"""
+    # فحص مفتاح التحكم: تسجيل الجدد معطّل؟
+    if not get_toggle('new_registration', True):
+        return jsonify({'success': False, 'message': 'التسجيل متوقف مؤقتاً. حاول لاحقاً'})
     allowed, error_msg = check_login_rate_limit()
     if not allowed:
         return jsonify({'success': False, 'message': error_msg})
