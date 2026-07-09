@@ -49,6 +49,11 @@ def init_wallet(merchant_id, password, api_url, site_url, payments_dict, app_lim
 @wallet_bp.route('/wallet')
 def wallet_page():
     """صفحة المحفظة والشحن"""
+    # استيراد مفاتيح التحكم
+    try:
+        from firebase_utils import get_toggle
+    except ImportError:
+        get_toggle = lambda key, default=True: default
     user_id = session.get('user_id')
     
     if not user_id:
@@ -144,7 +149,8 @@ def wallet_page():
                           total_charges=total_charges,
                           charges_count=charges_count,
                           purchases_count=purchases_count,
-                          email_verified=email_verified)
+                          email_verified=email_verified,
+                          links_create_enabled=get_toggle('payment_links_create', True))
 
 
 @wallet_bp.route('/wallet/pay', methods=['POST'])

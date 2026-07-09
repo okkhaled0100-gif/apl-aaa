@@ -4,7 +4,7 @@ import time
 import secrets
 import string
 from extensions import db, logger, SITE_URL
-from firebase_utils import get_balance
+from firebase_utils import get_balance, get_toggle
 from payment import create_wallet_payment
 from notifications import notify_new_charge
 from security_utils import require_session_user, get_session_user_id
@@ -93,6 +93,10 @@ def create_recharge_link():
         data = request.get_json() or request.form
         amount = str(data.get('amount', '')).strip()
         user_id = get_session_user_id()
+
+        # فحص مفتاح التحكم: إنشاء الروابط متوقف؟
+        if not get_toggle('payment_links_create', True):
+            return jsonify({'success': False, 'error': 'إنشاء روابط الدفع متوقف مؤقتاً'})
 
         # حماية: يجب توثيق الإيميل لإنشاء روابط الدفع (لاستقبال الإشعارات)
         try:

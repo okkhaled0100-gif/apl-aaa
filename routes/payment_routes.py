@@ -4,6 +4,11 @@
 # ============================================
 
 from flask import Blueprint, render_template, redirect, request, jsonify
+# استيراد مفاتيح التحكم
+try:
+    from firebase_utils import get_toggle
+except ImportError:
+    get_toggle = lambda key, default=True: default
 import time
 from extensions import db, BOT_USERNAME
 
@@ -129,6 +134,12 @@ def process_invoice_payment(invoice_id):
     if not invoice_data:
         return redirect(f'/invoice/{invoice_id}')
     
+    # فحص مفتاح التحكم: دفع الروابط متوقف (طوارئ)؟
+    if not get_toggle('payment_links_pay', True):
+        return render_template('invoice/error.html',
+            error='الدفع متوقف مؤقتاً، حاول لاحقاً',
+            invoice_id=invoice_id)
+
     # التحقق من انتهاء صلاحية الفاتورة
     expires_at = invoice_data.get('expires_at', 0)
     if expires_at > 0 and time.time() > expires_at:
