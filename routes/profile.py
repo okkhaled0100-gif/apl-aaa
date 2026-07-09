@@ -646,6 +646,7 @@ def withdraw_page():
         
         return render_template('withdraw.html',
             balance=balance,
+            instant_enabled=get_toggle('instant_withdraw', True),
             available_for_normal=round(available_for_normal, 2),
             frozen_amount=round(total_frozen, 2),
             freeze_time_left=freeze_time_left,
