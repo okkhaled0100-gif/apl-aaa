@@ -623,15 +623,13 @@
     }
 
     function goBackToStep1() {
-        document.getElementById('twoFACode').value = '';
-        document.getElementById('verifyCode').value = '';
+        var _el;
+        _el = document.getElementById('twoFACode'); if (_el) _el.value = '';
+        _el = document.getElementById('verifyCode'); if (_el) _el.value = '';
         hideMsg('error1'); hideMsg('error3'); hideMsg('success3'); hideMsg('error4');
-        document.getElementById('sendCodeBtn').disabled = false;
-        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
-        document.getElementById('sendCodeEmailBtn').disabled = false;
-        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
-        document.getElementById('sendCodePhoneBtn').disabled = false;
-        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
+        _el = document.getElementById('sendCodeBtn'); if (_el) { _el.disabled = false; _el.textContent = 'إرسال كود التحقق'; }
+        _el = document.getElementById('sendCodeEmailBtn'); if (_el) { _el.disabled = false; _el.textContent = 'إرسال كود التحقق'; }
+        _el = document.getElementById('sendCodePhoneBtn'); if (_el) { _el.disabled = false; _el.textContent = '📲 إرسال كود SMS'; }
         showStep('step1');
     }
 
