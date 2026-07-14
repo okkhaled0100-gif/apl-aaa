@@ -1434,3 +1434,39 @@ def set_toggle(key, value):
     except Exception as e:
         print(f"⚠️ خطأ في تحديث المفتاح {key}: {e}")
         return False
+
+
+# ===================== نظام التجار (Wholesale) =====================
+def is_wholesaler(user_id):
+    """هل المستخدم تاجر؟"""
+    try:
+        if not db or not user_id:
+            return False
+        doc = db.collection('users').document(str(user_id)).get()
+        if doc.exists:
+            return bool(doc.to_dict().get('is_wholesaler', False))
+    except Exception as e:
+        print(f"\u26a0\ufe0f خطأ في فحص التاجر {user_id}: {e}")
+    return False
+
+def set_wholesaler(user_id, value):
+    """تفعيل/إلغاء صفة التاجر"""
+    try:
+        if not db or not user_id:
+            return False
+        db.collection('users').document(str(user_id)).update({'is_wholesaler': bool(value)})
+        return True
+    except Exception as e:
+        print(f"\u26a0\ufe0f خطأ في تحديث التاجر {user_id}: {e}")
+        return False
+
+def get_product_price(product, user_id=None):
+    """السعر المناسب: سعر التاجر إن كان تاجراً وللمنتج سعر تاجر، وإلا العادي"""
+    try:
+        regular = float(product.get('price', 0))
+        wholesale = float(product.get('wholesale_price', 0) or 0)
+        if user_id and wholesale > 0 and is_wholesaler(user_id):
+            return wholesale
+        return regular
+    except Exception:
+        return float(product.get('price', 0))

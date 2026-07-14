@@ -1331,6 +1331,7 @@ def api_add_product_new():
         data = request.json
         name = data.get('name', '').strip()
         price = float(data.get('price', 0))
+        wholesale_price = float(data.get('wholesale_price', 0))
         category = data.get('category', '').strip()
         details = data.get('details', '').strip()
         hidden_data = data.get('hidden_data', '').strip()
@@ -1359,6 +1360,7 @@ def api_add_product_new():
             'id': product_id,
             'item_name': name,
             'price': price,
+            'wholesale_price': wholesale_price,
             'category': category,
             'details': details,
             'hidden_data': encrypted_hidden_data,
@@ -1812,6 +1814,23 @@ def api_add_customer():
         return jsonify({'status': 'error', 'message': 'حدث خطأ أثناء الإضافة'})
 
 
+@admin_bp.route('/api/admin/toggle_wholesaler', methods=['POST'])
+def api_toggle_wholesaler():
+    """تفعيل/إلغاء صفة التاجر لمستخدم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    from firebase_utils import set_wholesaler
+    data = request.get_json() or {}
+    user_id = str(data.get('user_id', '')).strip()
+    value = bool(data.get('value', False))
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+    ok = set_wholesaler(user_id, value)
+    if ok:
+        return jsonify({'status': 'success', 'is_wholesaler': value})
+    return jsonify({'status': 'error', 'message': 'فشل التحديث'})
+
+
 @admin_bp.route('/api/admin/get_customers')
 def api_get_customers():
     """جلب جميع العملاء مع إحصائياتهم"""
@@ -1946,6 +1965,7 @@ def api_get_customer_details():
             'has_2fa': user_data.get('has_2fa', False),
             'phone_verified': user_data.get('phone_verified', False),
             'verified_phone': user_data.get('verified_phone') or user_data.get('phone', ''),
+            'is_wholesaler': user_data.get('is_wholesaler', False),
             'orders': orders,
             'balance_logs': balance_logs
         }

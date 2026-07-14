@@ -358,6 +358,17 @@
                     <h2 style="margin-bottom: 20px;"> ${name}</h2>
                     <p style="color: var(--muted); margin-bottom: 20px;">ID: ${userId}</p>
                     ${phoneSection}
+                    ${c.is_wholesaler ? `
+                    <div style="background: rgba(108,92,231,0.12); border: 1px solid rgba(108,92,231,0.4); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <span style="color: #a29bfe; font-weight: 600;">🏪 تاجر (يرى أسعار الجملة)</span>
+                        <button class="btn btn-danger btn-sm" onclick="toggleWholesaler('${userId}', false)">❌ إلغاء صفة التاجر</button>
+                    </div>
+                    ` : `
+                    <div style="background: rgba(108,117,125,0.1); border: 1px solid rgba(108,117,125,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <span style="color: var(--muted);">عميل عادي</span>
+                        <button class="btn btn-primary btn-sm" onclick="toggleWholesaler('${userId}', true)">🏪 تفعيل صفة التاجر</button>
+                    </div>
+                    `}
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card">
                             <div class="icon"></div>
@@ -432,6 +443,24 @@
     }
     function closeModal() {
         document.getElementById('customerModal').style.display = 'none';
+    }
+    async function toggleWholesaler(userId, value) {
+        try {
+            const res = await fetch('/api/admin/toggle_wholesaler', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, value: value })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast(value ? 'تم تفعيل صفة التاجر' : 'تم إلغاء صفة التاجر', 'success');
+                viewCustomer(userId);
+            } else {
+                showToast(data.message || 'فشل التحديث', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
     }
     async function addBalance(userId, name) {
         const amount = prompt(` كم تريد إضافة لرصيد ${name}؟`);

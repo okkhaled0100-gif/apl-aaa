@@ -35,7 +35,8 @@ from config import (
 from firebase_utils import (
     query_where, get_balance, add_balance, add_product,
     calc_bonus, get_bonus, add_bonus,
-    get_categories, get_charge_key, use_charge_key, get_user_cart, get_all_products_for_store, get_header_settings
+    get_categories, get_charge_key, use_charge_key, get_user_cart, get_all_products_for_store, get_header_settings,
+    get_product_price as _get_wh_price
 )
 from utils import sanitize, regenerate_session
 
@@ -1126,7 +1127,7 @@ def buy_item():
         if item.get('sold', False):
             return {'status': 'error', 'message': 'عذراً، هذا المنتج تم بيعه للتو! 🚫'}
 
-        price = float(item.get('price', 0))
+        price = float(_get_wh_price(item, buyer_id))
 
         # 3. التحقق الفعلي من إمكانية إرسال رسالة للمشتري (قبل إتمام الشراء)
         # نرسل رسالة حقيقية لأن chat_action لا تفشل حتى لو المستخدم حظر البوت

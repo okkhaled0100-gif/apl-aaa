@@ -288,6 +288,10 @@
                     <input type="number" id="productPrice" placeholder="25" min="1" required>
                 </div>
                 <div class="form-group">
+                    <label> سعر التاجر (ريال) - اختياري</label>
+                    <input type="number" id="productWholesalePrice" placeholder="اتركه فارغاً إن لم يكن هناك سعر تاجر" min="0">
+                </div>
+                <div class="form-group">
                     <label> الفئة *</label>
                     <select id="productCategory" required>
                         <option value="">-- اختر الفئة --</option>
@@ -477,6 +481,7 @@
         const deliveryType = document.getElementById('productDeliveryType').value;
         const name = document.getElementById('productName').value.trim();
         const price = document.getElementById('productPrice').value;
+        const wholesalePrice = document.getElementById('productWholesalePrice').value;
         const category = document.getElementById('productCategory').value;
         const details = document.getElementById('productDetails').value.trim();
         const image = document.getElementById('productImage').value.trim();
@@ -510,6 +515,7 @@
                 body: JSON.stringify({
                     name: name,
                     price: parseFloat(price),
+                    wholesale_price: wholesalePrice ? parseFloat(wholesalePrice) : 0,
                     category: category,
                     details: details,
                     hidden_data: hiddenData,

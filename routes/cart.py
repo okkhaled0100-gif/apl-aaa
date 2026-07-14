@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import random
 
 from extensions import db
-from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance
+from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance, get_product_price as _get_wh_price
 from google.cloud import firestore
 from security_utils import (
     require_session_user, get_session_user_id, log_security_event,
@@ -349,7 +349,7 @@ def api_cart_checkout():
                         continue  # المنتج محجوز لشخص آخر
                     
                     item['product_data'] = product
-                    item['current_price'] = float(product.get('price', item['price']))
+                    item['current_price'] = float(_get_wh_price(product, user_id))
                     total += item['current_price']
                     available_items.append(item)
         

@@ -16,6 +16,38 @@ web_bp = Blueprint('web', __name__)
 
 
 # ===================== صفحة تفاصيل المنتج =====================
+# استيراد نظام التجار
+try:
+    from firebase_utils import is_wholesaler as _is_wholesaler
+except ImportError:
+    _is_wholesaler = lambda uid: False
+
+def apply_wholesale_prices(products, user_id):
+    """استبدال السعر بسعر التاجر للمنتجات (إن كان تاجراً)"""
+    if not user_id or not products:
+        return products
+    try:
+        if not _is_wholesaler(user_id):
+            return products
+        for p in products:
+            try:
+                wp = float(p.get('wholesale_price', 0) or 0)
+                if wp > 0:
+                    p['price'] = wp
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return products
+
+def apply_wholesale_price_single(product, user_id):
+    """استبدال السعر لمنتج واحد"""
+    if product and user_id:
+        apply_wholesale_prices([product], user_id)
+    return product
+
+
+
 @web_bp.route('/product/<product_id>')
 def product_detail(product_id):
     """صفحة تفاصيل المنتج"""
@@ -77,6 +109,8 @@ def product_detail(product_id):
             if p.get('id') != product_id and not p.get('sold')
         ][:4]  # أول 4 منتجات فقط
     
+    apply_wholesale_price_single(product, user_id)
+    apply_wholesale_prices(related_products, user_id)
     return render_template('product.html',
                          product=product,
                          category=category,
@@ -201,6 +235,10 @@ def category_products(category_id):
         else:
             items.append(product)
     
+    # تطبيق أسعار التجار
+    apply_wholesale_prices(items, user_id)
+    apply_wholesale_prices(my_purchases, user_id)
+
     # تحضير JSON للفئات
     categories_json = json.dumps([{'id': c.get('id', ''), 'name': c.get('name', '')} for c in categories])
     
