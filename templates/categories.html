@@ -15,7 +15,7 @@
         }
         body {
             font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #14100a 60%, #0a0a0a 100%);
             color: #fff;
             min-height: 100vh;
             padding-top: 70px;
@@ -26,14 +26,14 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+            background: linear-gradient(135deg, #12100a 0%, #0a0a0a 100%);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.35);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 15px;
             z-index: 999;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
         }
         .header-right {
             display: flex;
@@ -48,7 +48,11 @@
         .header-logo {
             font-size: 22px;
             font-weight: bold;
-            color: #fff;
+            background: linear-gradient(135deg, #f9d976, #d4af37, #b8860b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: #d4af37;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -418,9 +422,9 @@
             margin-bottom: 40px;
         }
         .category-card {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 2px solid rgba(108, 92, 231, 0.3);
-            border-radius: 16px;
+            background: linear-gradient(145deg, #16130c 0%, #0d0d0d 100%);
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            border-radius: 18px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.3s;
@@ -430,14 +434,14 @@
             position: relative;
         }
         .category-card:hover {
-            border-color: #6c5ce7;
+            border-color: #d4af37;
             transform: translateY(-8px);
-            box-shadow: 0 16px 40px rgba(108, 92, 231, 0.3);
+            box-shadow: 0 16px 44px rgba(212, 175, 55, 0.28), 0 0 0 1px rgba(212, 175, 55, 0.4);
         }
         .category-image {
             width: 100%;
             min-height: 80px;
-            background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+            background: linear-gradient(135deg, #d4af37 0%, #8b6914 100%);
             display: flex;
             align-items: center;
             justify-content: center;
