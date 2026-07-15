@@ -217,7 +217,7 @@ def api_cart_get():
             if product_doc.exists:
                 product = product_doc.to_dict()
                 item['sold'] = product.get('sold', False)
-                item['current_price'] = float(product.get('price', item['price']))
+                item['current_price'] = float(_get_wh_price(product, user_id))
                 item['price_changed'] = item['current_price'] != item['price']
                 updated_items.append(item)
             else:
