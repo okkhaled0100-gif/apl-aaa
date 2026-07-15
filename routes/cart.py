@@ -143,7 +143,7 @@ def api_cart_add():
         cart_item = {
             'product_id': product_id,
             'name': product.get('item_name', 'منتج'),
-            'price': float(product.get('price', 0)),
+            'price': float(_get_wh_price(product, user_id)),
             'category': product.get('category', ''),
             'image_url': product.get('image_url', ''),
             'delivery_type': product.get('delivery_type', 'instant'),
