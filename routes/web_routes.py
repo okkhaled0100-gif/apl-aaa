@@ -124,6 +124,65 @@ def product_detail(product_id):
                          cart_count=cart_count)
 
 
+@web_bp.route('/api/rewards/category/<category_id>')
+def api_rewards_category(category_id):
+    """تفاصيل قسم مكافأة معين للعميل"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'غير مسجل'}), 401
+    try:
+        from firebase_utils import get_loyalty_counts, get_toggle
+        try:
+            if not get_toggle('rewards_system', False):
+                return jsonify({'status': 'error', 'message': 'النظام غير مفعّل'}), 403
+        except Exception:
+            pass
+        cats = get_categories()
+        cat = None
+        for c in cats:
+            if c.get('id', '') == category_id:
+                cat = c
+                break
+        if not cat or not cat.get('rewards_enabled', False):
+            return jsonify({'status': 'error', 'message': 'القسم غير متاح للمكافآت'}), 404
+        cat_name = cat.get('name', '')
+        counts = get_loyalty_counts(user_id)
+        purchase_count = int(counts.get(cat_name, 0))
+        gifts_available = 0
+        try:
+            from google.cloud.firestore_v1.base_query import FieldFilter as _FF
+            gdocs = db.collection('category_gifts').where(filter=_FF('category_id', '==', category_id)).stream() if db else []
+            for gd in gdocs:
+                if not gd.to_dict().get('used', False):
+                    gifts_available += 1
+        except Exception:
+            pass
+        goal = 10
+        return jsonify({
+            'status': 'success',
+            'category': {
+                'id': category_id,
+                'name': cat_name,
+                'image_url': cat.get('image_url', ''),
+                'purchase_count': purchase_count,
+                'goal': goal,
+                'ready': purchase_count >= goal,
+                'gifts_available': gifts_available
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'}), 500
+
+
+@web_bp.route('/rewards/<category_id>')
+def rewards_category_page(category_id):
+    """صفحة قسم المكافأة (10 بطاقات)"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect('/login')
+    return render_template('rewards_category.html', category_id=category_id)
+
+
 @web_bp.route('/api/rewards/my_progress')
 def api_rewards_my_progress():
     """تقدم العميل في مكافآت الأقسام المفعّلة"""
