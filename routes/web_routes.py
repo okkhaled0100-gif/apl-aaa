@@ -1,7 +1,7 @@
 """
 Web Routes - صفحات الويب
 """
-from flask import Blueprint, render_template, session, redirect
+from flask import Blueprint, render_template, session, redirect, jsonify
 from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
     get_products_by_category, get_product_by_id,
@@ -122,6 +122,37 @@ def product_detail(product_id):
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
                          cart_count=cart_count)
+
+
+@web_bp.route('/api/rewards/my_progress')
+def api_rewards_my_progress():
+    """تقدم العميل في مكافآت الأقسام المفعّلة"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'غير مسجل'}), 401
+    try:
+        from firebase_utils import get_loyalty_counts, get_toggle
+        try:
+            if not get_toggle('rewards_system', False):
+                return jsonify({'status': 'success', 'categories': []})
+        except Exception:
+            pass
+        counts = get_loyalty_counts(user_id)
+        cats = get_categories()
+        result = []
+        for cat in cats:
+            if not cat.get('rewards_enabled', False):
+                continue
+            cat_name = cat.get('name', '')
+            result.append({
+                'id': cat.get('id', ''),
+                'name': cat_name,
+                'image_url': cat.get('image_url', ''),
+                'purchase_count': int(counts.get(cat_name, 0))
+            })
+        return jsonify({'status': 'success', 'categories': result})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'}), 500
 
 
 @web_bp.route('/rewards')

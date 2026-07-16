@@ -1470,3 +1470,51 @@ def get_product_price(product, user_id=None):
         return regular
     except Exception:
         return float(product.get('price', 0))
+
+
+# ===================== نظام مكافآت الأقسام =====================
+def increment_loyalty(user_id, category_id, amount=1):
+    """زيادة عداد ولاء المستخدم لقسم معين (محمي في السيرفر)"""
+    if not db or not user_id or not category_id:
+        return False
+    try:
+        ref = db.collection('loyalty').document(str(user_id))
+        doc = ref.get()
+        data = doc.to_dict() if doc.exists else {}
+        counts = data.get('counts', {})
+        current = int(counts.get(category_id, 0))
+        counts[category_id] = current + int(amount)
+        ref.set({'counts': counts}, merge=True)
+        return True
+    except Exception as e:
+        logger.error(f"increment_loyalty error: {e}")
+        return False
+
+def get_loyalty_counts(user_id):
+    """جلب كل عدادات ولاء المستخدم"""
+    if not db or not user_id:
+        return {}
+    try:
+        doc = db.collection('loyalty').document(str(user_id)).get()
+        if doc.exists:
+            return doc.to_dict().get('counts', {})
+        return {}
+    except Exception as e:
+        logger.error(f"get_loyalty_counts error: {e}")
+        return {}
+
+def reset_loyalty(user_id, category_id):
+    """تصفير عداد قسم بعد أخذ الهدية"""
+    if not db or not user_id or not category_id:
+        return False
+    try:
+        ref = db.collection('loyalty').document(str(user_id))
+        doc = ref.get()
+        data = doc.to_dict() if doc.exists else {}
+        counts = data.get('counts', {})
+        counts[category_id] = 0
+        ref.set({'counts': counts}, merge=True)
+        return True
+    except Exception as e:
+        logger.error(f"reset_loyalty error: {e}")
+        return False

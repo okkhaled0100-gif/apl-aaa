@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import random
 
 from extensions import db
-from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance, get_product_price as _get_wh_price
+from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance, get_product_price as _get_wh_price, increment_loyalty as _inc_loyalty
 from google.cloud import firestore
 from security_utils import (
     require_session_user, get_session_user_id, log_security_event,
@@ -479,6 +479,15 @@ def api_cart_checkout():
         
         # حذف السلة من Firebase
         clear_user_cart(user_id)
+
+        # زيادة عداد مكافآت الأقسام (لكل منتج مشترى)
+        try:
+            for _pi in purchased_items:
+                _pcat_name = _pi.get('category', '')
+                if _pcat_name:
+                    _inc_loyalty(user_id, _pcat_name, 1)
+        except Exception:
+            pass
         
         # فصل المنتجات الفورية عن اليدوية
         instant_items = [i for i in purchased_items if i.get('delivery_type') == 'instant']
