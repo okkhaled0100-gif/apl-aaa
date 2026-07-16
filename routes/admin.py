@@ -1537,10 +1537,24 @@ def api_get_categories():
         
         categories = get_categories_list()
         
+        # حساب عدد هدايا كل قسم (المتاحة فقط)
+        gift_counts = {}
+        try:
+            all_gifts = db.collection('category_gifts').stream() if db else []
+            for gdoc in all_gifts:
+                gd = gdoc.to_dict()
+                if not gd.get('used', False):
+                    gcid = gd.get('category_id', '')
+                    if gcid:
+                        gift_counts[gcid] = gift_counts.get(gcid, 0) + 1
+        except Exception:
+            pass
+
         result = []
         for cat in categories:
             cat_data = cat.copy()
             cat_data['product_count'] = category_counts.get(cat['name'], 0)
+            cat_data['gift_count'] = gift_counts.get(cat.get('id', ''), 0)
             result.append(cat_data)
         
         return jsonify({'status': 'success', 'categories': result})
@@ -1594,6 +1608,94 @@ def api_add_category():
     except Exception as e:
         logger.error(f"Error adding category: {e}")
         return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'})
+
+@admin_bp.route('/api/admin/add_gift', methods=['POST'])
+def api_add_gift():
+    """إضافة هدية لمخزون قسم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        data = request.json or {}
+        cat_id = str(data.get('category_id', '')).strip()
+        delivery_type = data.get('delivery_type', 'instant').strip()
+        hidden_data = data.get('hidden_data', '').strip()
+        buyer_instructions = data.get('buyer_instructions', '').strip()
+        if delivery_type not in ['instant', 'manual']:
+            delivery_type = 'instant'
+        if not cat_id:
+            return jsonify({'status': 'error', 'message': 'معرف القسم مطلوب'})
+        cat = get_category_by_id(cat_id)
+        if not cat:
+            return jsonify({'status': 'error', 'message': 'القسم غير موجود'})
+        if delivery_type == 'instant' and not hidden_data:
+            return jsonify({'status': 'error', 'message': 'الكود مطلوب للتسليم الفوري'})
+        if delivery_type == 'manual' and not buyer_instructions:
+            return jsonify({'status': 'error', 'message': 'يجب تحديد ما تحتاجه للتسليم اليدوي'})
+        gift_id = str(uuid.uuid4())
+        encrypted = encrypt_data(hidden_data) if hidden_data else ''
+        gift_data = {
+            'id': gift_id,
+            'category_id': cat_id,
+            'category_name': cat.get('name', ''),
+            'delivery_type': delivery_type,
+            'hidden_data': encrypted,
+            'buyer_instructions': buyer_instructions,
+            'used': False,
+            'created_at': time.time()
+        }
+        if db:
+            db.collection('category_gifts').document(gift_id).set(gift_data)
+        return jsonify({'status': 'success', 'gift_id': gift_id})
+    except Exception as e:
+        logger.error(f"Error adding gift: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/get_gifts')
+def api_get_gifts():
+    """جلب هدايا قسم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        cat_id = request.args.get('category_id', '').strip()
+        if not cat_id:
+            return jsonify({'status': 'error', 'message': 'معرف القسم مطلوب'})
+        gifts = []
+        if db:
+            docs = db.collection('category_gifts').where(filter=FieldFilter('category_id', '==', cat_id)).stream()
+            for doc in docs:
+                g = doc.to_dict()
+                gifts.append({
+                    'id': g.get('id'),
+                    'delivery_type': g.get('delivery_type', 'instant'),
+                    'used': g.get('used', False),
+                    'buyer_instructions': g.get('buyer_instructions', ''),
+                    'created_at': g.get('created_at', 0)
+                })
+        available = sum(1 for g in gifts if not g['used'])
+        return jsonify({'status': 'success', 'gifts': gifts, 'available': available})
+    except Exception as e:
+        logger.error(f"Error getting gifts: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/delete_gift', methods=['POST'])
+def api_delete_gift():
+    """حذف هدية"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        data = request.json or {}
+        gift_id = str(data.get('gift_id', '')).strip()
+        if not gift_id:
+            return jsonify({'status': 'error', 'message': 'معرف الهدية مطلوب'})
+        if db:
+            db.collection('category_gifts').document(gift_id).delete()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        logger.error(f"Error deleting gift: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
 
 @admin_bp.route('/admin/rewards')
 def admin_rewards():
