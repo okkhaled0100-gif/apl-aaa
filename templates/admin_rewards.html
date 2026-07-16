@@ -1,0 +1,194 @@
+{% extends "admin_base.html" %}
+{% block title %}نظام المكافآت{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rewards-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 15px; margin-bottom: 25px;
+    }
+    .master-switch-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        border-radius: 16px; padding: 24px; margin-bottom: 25px;
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 15px;
+    }
+    .master-switch-info h3 { margin: 0 0 6px; font-size: 18px; }
+    .master-switch-info p { margin: 0; color: var(--muted); font-size: 13px; }
+    .switch { position: relative; display: inline-block; width: 56px; height: 30px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background: rgba(255,255,255,0.15); transition: .3s; border-radius: 30px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 22px; width: 22px;
+        left: 4px; bottom: 4px; background: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+    input:checked + .slider:before { transform: translateX(26px); }
+    .cats-section { margin-top: 10px; }
+    .cats-section.disabled { opacity: 0.5; pointer-events: none; }
+    .cat-reward-row {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 16px;
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 12px;
+    }
+    .cat-reward-info { display: flex; align-items: center; gap: 12px; }
+    .cat-reward-info img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+    .cat-reward-name { font-weight: 600; font-size: 15px; }
+    .cat-reward-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .cat-reward-actions { display: flex; align-items: center; gap: 10px; }
+    .gift-count-badge {
+        background: rgba(108,92,231,0.15); color: #a29bfe;
+        padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    }
+    .manage-gifts-btn {
+        background: rgba(0,184,148,0.15); color: #00b894; border: none;
+        padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+        font-family: 'Tajawal', sans-serif; font-weight: 600;
+    }
+    .empty-msg { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rewards-header">
+    <h1>🎁 نظام المكافآت</h1>
+</div>
+
+<div class="master-switch-card">
+    <div class="master-switch-info">
+        <h3>تفعيل نظام المكافآت</h3>
+        <p>عند التفعيل، يمكنك اختيار الأقسام المشاركة وإضافة هدايا لها</p>
+    </div>
+    <label class="switch">
+        <input type="checkbox" id="masterSwitch" onchange="toggleMaster(this.checked)">
+        <span class="slider"></span>
+    </label>
+</div>
+
+<div class="cats-section disabled" id="catsSection">
+    <h3 style="margin-bottom: 15px;">الأقسام المشاركة</h3>
+    <div id="catsList">
+        <div class="empty-msg">جارِ التحميل...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let systemEnabled = false;
+
+async function loadRewards() {
+    try {
+        const res = await fetch('/api/admin/get_toggles');
+        const data = await res.json();
+        if (data.status === 'success' && data.toggles) {
+            systemEnabled = !!data.toggles.rewards_system;
+        }
+    } catch(e) {}
+    document.getElementById('masterSwitch').checked = systemEnabled;
+    updateSectionState();
+    loadCategories();
+}
+
+function updateSectionState() {
+    const section = document.getElementById('catsSection');
+    if (systemEnabled) section.classList.remove('disabled');
+    else section.classList.add('disabled');
+}
+
+async function toggleMaster(checked) {
+    try {
+        const res = await fetch('/api/admin/set_toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'rewards_system', value: checked })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            systemEnabled = checked;
+            updateSectionState();
+            showToast(checked ? 'تم تفعيل نظام المكافآت' : 'تم تعطيل النظام', 'success');
+        } else {
+            showToast('فشل التحديث', 'error');
+            document.getElementById('masterSwitch').checked = !checked;
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+        document.getElementById('masterSwitch').checked = !checked;
+    }
+}
+
+async function loadCategories() {
+    try {
+        const res = await fetch('/api/admin/get_categories');
+        const data = await res.json();
+        const list = document.getElementById('catsList');
+        if (data.status === 'success' && data.categories && data.categories.length > 0) {
+            renderCategories(data.categories);
+        } else {
+            list.innerHTML = '<div class="empty-msg">لا توجد أقسام. أضف أقساماً أولاً.</div>';
+        }
+    } catch(e) {
+        document.getElementById('catsList').innerHTML = '<div class="empty-msg">خطأ في التحميل</div>';
+    }
+}
+
+function renderCategories(categories) {
+    const list = document.getElementById('catsList');
+    list.innerHTML = categories.map(cat => {
+        const enabled = cat.rewards_enabled === true;
+        const giftCount = cat.gift_count || 0;
+        const img = cat.image_url || 'https://placehold.co/44x44/6c5ce7/ffffff?text=' + encodeURIComponent(cat.name);
+        return `
+        <div class="cat-reward-row">
+            <div class="cat-reward-info">
+                <img src="${img}" alt="">
+                <div>
+                    <div class="cat-reward-name">${cat.name}</div>
+                    <div class="cat-reward-meta">${enabled ? 'مشارك في المكافآت' : 'غير مشارك'}</div>
+                </div>
+            </div>
+            <div class="cat-reward-actions">
+                ${enabled ? `<span class="gift-count-badge">🎁 ${giftCount} هدية</span>
+                <button class="manage-gifts-btn" onclick="manageGifts('${cat.id}', '${cat.name}')">إدارة الهدايا</button>` : ''}
+                <label class="switch">
+                    <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleCategory('${cat.id}', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function toggleCategory(catId, checked) {
+    try {
+        const res = await fetch('/api/admin/toggle_category_rewards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: catId, value: checked })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showToast(checked ? 'تم إضافة القسم للمكافآت' : 'تم إزالة القسم', 'success');
+            loadCategories();
+        } else {
+            showToast(data.message || 'فشل التحديث', 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    }
+}
+
+function manageGifts(catId, catName) {
+    showToast('إدارة هدايا: ' + catName + ' (قريباً)', 'success');
+}
+
+document.addEventListener('DOMContentLoaded', loadRewards);
+</script>
+{% endblock %}

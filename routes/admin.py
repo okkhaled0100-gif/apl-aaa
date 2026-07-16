@@ -1581,6 +1581,7 @@ def api_add_category():
             'image_url': image_url or 'https://placehold.co/100x100/6c5ce7/ffffff?text=' + name,
             'order': new_order,
             'delivery_type': delivery_type,
+            'rewards_enabled': False,
             'created_at': time.time()
         }
         
@@ -1593,6 +1594,35 @@ def api_add_category():
     except Exception as e:
         logger.error(f"Error adding category: {e}")
         return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'})
+
+@admin_bp.route('/admin/rewards')
+def admin_rewards():
+    """صفحة نظام المكافآت"""
+    if not session.get('is_admin'):
+        return redirect('/admin/login')
+    return render_template('admin_rewards.html', active_page='rewards')
+
+
+@admin_bp.route('/api/admin/toggle_category_rewards', methods=['POST'])
+def api_toggle_category_rewards():
+    """تفعيل/تعطيل المكافأة لقسم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        data = request.json or {}
+        cat_id = str(data.get('id', '')).strip()
+        value = bool(data.get('value', False))
+        if not cat_id:
+            return jsonify({'status': 'error', 'message': 'معرف القسم مطلوب'})
+        cat = get_category_by_id(cat_id)
+        if not cat:
+            return jsonify({'status': 'error', 'message': 'القسم غير موجود'})
+        update_category(cat_id, {'rewards_enabled': value})
+        return jsonify({'status': 'success', 'rewards_enabled': value})
+    except Exception as e:
+        logger.error(f"Error toggling rewards: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
 
 @admin_bp.route('/api/admin/update_category', methods=['POST'])
 def api_update_category():
