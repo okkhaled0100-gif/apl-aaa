@@ -1,7 +1,7 @@
 """
 Web Routes - صفحات الويب
 """
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, redirect
 from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
     get_products_by_category, get_product_by_id,
@@ -122,6 +122,27 @@ def product_detail(product_id):
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
                          cart_count=cart_count)
+
+
+@web_bp.route('/rewards')
+def rewards_page():
+    """صفحة المكافآت للعميل"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect('/login')
+    user_name = session.get('user_name', 'ضيف')
+    profile_photo = session.get('profile_photo', '')
+    balance = 0.0
+    try:
+        balance = get_balance(user_id)
+    except Exception:
+        balance = 0.0
+    return render_template('rewards.html',
+                         user_name=user_name,
+                         profile_photo=profile_photo,
+                         balance=balance,
+                         current_user_id=user_id,
+                         is_logged_in=True)
 
 
 @web_bp.route('/')

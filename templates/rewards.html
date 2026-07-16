@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكافآت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', 'Segoe UI', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #fff; min-height: 100vh; padding-top: 70px;
+        }
+        .main-header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 999; box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        .rewards-intro {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border-radius: 16px; padding: 24px; margin-bottom: 25px; text-align: center;
+        }
+        .rewards-intro h2 { font-size: 22px; margin-bottom: 8px; }
+        .rewards-intro p { font-size: 14px; opacity: 0.9; }
+        .cat-reward-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(108,92,231,0.3); border-radius: 16px;
+            padding: 18px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s;
+        }
+        .cat-reward-card:hover { border-color: #6c5ce7; transform: translateY(-3px); }
+        .cat-reward-top {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+        }
+        .cat-reward-top img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
+        .cat-reward-name { font-size: 16px; font-weight: 700; }
+        .cat-reward-progress-text { font-size: 13px; color: #8a8a9e; margin-top: 3px; }
+        .progress-bar-bg {
+            width: 100%; height: 10px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%; background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            border-radius: 10px; transition: width 0.4s;
+        }
+        .ready-badge {
+            display: inline-block; background: rgba(0,184,148,0.2); color: #00b894;
+            padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; margin-top: 8px;
+        }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 56px; color: rgba(108,92,231,0.4); margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+        .empty-state p { color: #8a8a9e; font-size: 14px; }
+        .loading { text-align: center; padding: 50px; color: #8a8a9e; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <button class="header-btn" onclick="window.location.href='/'">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <div class="header-title">🎁 المكافآت</div>
+        <div style="width:40px;"></div>
+    </header>
+
+    <div class="container">
+        <div class="rewards-intro">
+            <h2>🎁 برنامج المكافآت</h2>
+            <p>اشترِ 10 مرات من أي قسم، واحصل على الهدية الـ 11 مجاناً!</p>
+        </div>
+        <div id="rewardsList">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> جارِ التحميل...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadRewards() {
+            const list = document.getElementById('rewardsList');
+            try {
+                const res = await fetch('/api/rewards/my_progress');
+                const data = await res.json();
+                if (data.status === 'success' && data.categories && data.categories.length > 0) {
+                    renderRewards(data.categories);
+                } else {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-gift"></i>
+                            <h3>لا توجد مكافآت بعد</h3>
+                            <p>ابدأ الشراء من الأقسام لتجمع مكافآتك!</p>
+                        </div>`;
+                }
+            } catch(e) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-gift"></i>
+                        <h3>لا توجد مكافآت بعد</h3>
+                        <p>ابدأ الشراء من الأقسام لتجمع مكافآتك!</p>
+                    </div>`;
+            }
+        }
+
+        function renderRewards(categories) {
+            const list = document.getElementById('rewardsList');
+            list.innerHTML = categories.map(cat => {
+                const count = cat.purchase_count || 0;
+                const goal = 10;
+                const ready = count >= goal;
+                const pct = Math.min(100, (count / goal) * 100);
+                const img = cat.image_url || 'https://placehold.co/50x50/6c5ce7/ffffff?text=' + encodeURIComponent(cat.name);
+                return `
+                <div class="cat-reward-card" onclick="location.href='/rewards/${cat.id}'">
+                    <div class="cat-reward-top">
+                        <img src="${img}" alt="">
+                        <div style="flex:1;">
+                            <div class="cat-reward-name">${cat.name}</div>
+                            <div class="cat-reward-progress-text">${count} من ${goal} عملية شراء</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    ${ready ? '<div class="ready-badge">✅ جاهزة! اضغط لاستلام هديتك</div>' : ''}
+                </div>`;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRewards);
+    </script>
+</body>
+</html>
