@@ -150,13 +150,16 @@ def api_rewards_category(category_id):
         purchase_count = int(counts.get(cat_name, 0))
         gifts_available = 0
         try:
-            from google.cloud.firestore_v1.base_query import FieldFilter as _FF
-            gdocs = db.collection('category_gifts').where(filter=_FF('category_id', '==', category_id)).stream() if db else []
-            for gd in gdocs:
-                if not gd.to_dict().get('used', False):
+            all_gifts = db.collection('category_gifts').stream() if db else []
+            _total_seen = 0
+            for gd in all_gifts:
+                _gdata = gd.to_dict()
+                _total_seen += 1
+                if str(_gdata.get('category_id', '')) == str(category_id) and not _gdata.get('used', False):
                     gifts_available += 1
-        except Exception:
-            pass
+            print(f"🎁 DEBUG rewards: category_id={category_id}, total_gifts_in_db={_total_seen}, available_for_this_cat={gifts_available}")
+        except Exception as _e:
+            print(f"🎁 DEBUG rewards ERROR: {_e}")
         goal = 10
         return jsonify({
             'status': 'success',
