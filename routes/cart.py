@@ -435,6 +435,7 @@ def api_cart_checkout():
                     'hidden_data': product.get('hidden_data'),
                     'order_id': order_id,
                     'delivery_type': delivery_type,
+                    'category': product.get('category', ''),
                     'buyer_details': item.get('buyer_details', '')
                 })
                 
