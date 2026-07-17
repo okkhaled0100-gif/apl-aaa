@@ -1533,3 +1533,53 @@ def count_available_gifts(category_id):
     except Exception as e:
         logger.error(f"count_available_gifts error: {e}")
         return 0
+
+def claim_category_gift(user_id, category_id, category_name, goal=10):
+    """أخذ هدية القسم بمعاملة آمنة: يتحقق العداد، يسحب هدية، يصفّر العداد.
+    يرجع (نجاح, رسالة/بيانات_الهدية)."""
+    if not db or not user_id or not category_id:
+        return (False, 'بيانات ناقصة')
+    try:
+        from google.cloud import firestore as _fs
+        gift_ref = None
+        gift_data = None
+        for gd in db.collection('category_gifts').stream():
+            g = gd.to_dict()
+            if str(g.get('category_id', '')) == str(category_id) and not g.get('used', False):
+                gift_ref = db.collection('category_gifts').document(gd.id)
+                gift_data = g
+                break
+        if not gift_ref:
+            return (False, 'لا توجد هدايا متاحة حالياً')
+
+        loyalty_ref = db.collection('loyalty').document(str(user_id))
+        transaction = db.transaction()
+
+        @_fs.transactional
+        def _do_claim(trans):
+            loyalty_snap = loyalty_ref.get(transaction=trans)
+            counts = {}
+            if loyalty_snap.exists:
+                counts = loyalty_snap.to_dict().get('counts', {})
+            current = int(counts.get(category_name, 0))
+            if current < goal:
+                raise ValueError('لم تكمل الشراء المطلوب بعد')
+            gsnap = gift_ref.get(transaction=trans)
+            if not gsnap.exists or gsnap.to_dict().get('used', False):
+                raise ValueError('الهدية لم تعد متاحة، حاول مرة أخرى')
+            trans.update(gift_ref, {
+                'used': True,
+                'used_by': str(user_id),
+                'used_at': _fs.SERVER_TIMESTAMP
+            })
+            counts[category_name] = current - goal if current > goal else 0
+            trans.set(loyalty_ref, {'counts': counts}, merge=True)
+            return True
+
+        _do_claim(transaction)
+        return (True, gift_data)
+    except ValueError as ve:
+        return (False, str(ve))
+    except Exception as e:
+        logger.error(f"claim_category_gift error: {e}")
+        return (False, 'حدث خطأ، حاول لاحقاً')

@@ -124,6 +124,68 @@ def product_detail(product_id):
                          cart_count=cart_count)
 
 
+@web_bp.route('/api/rewards/claim', methods=['POST'])
+def api_rewards_claim():
+    """أخذ هدية القسم - تُسلّم في الصفحة مباشرة"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'غير مسجل'}), 401
+    try:
+        from firebase_utils import get_toggle, claim_category_gift
+        try:
+            if not get_toggle('rewards_system', False):
+                return jsonify({'status': 'error', 'message': 'النظام غير مفعّل'}), 403
+        except Exception:
+            pass
+        data = request.get_json() or {}
+        category_id = str(data.get('category_id', '')).strip()
+        if not category_id:
+            return jsonify({'status': 'error', 'message': 'معرف القسم مطلوب'})
+        cats = get_categories()
+        cat = None
+        for c in cats:
+            if c.get('id', '') == category_id:
+                cat = c
+                break
+        if not cat or not cat.get('rewards_enabled', False):
+            return jsonify({'status': 'error', 'message': 'القسم غير متاح للمكافآت'}), 404
+        cat_name = cat.get('name', '')
+        ok, result = claim_category_gift(user_id, category_id, cat_name, goal=10)
+        if not ok:
+            return jsonify({'status': 'error', 'message': result})
+        gift = result
+        delivery_type = gift.get('delivery_type', 'instant')
+        if delivery_type == 'instant':
+            code = ''
+            try:
+                from encryption_utils import decrypt_data
+                enc = gift.get('hidden_data', '')
+                code = decrypt_data(enc) if enc else ''
+            except Exception:
+                code = gift.get('hidden_data', '')
+            return jsonify({
+                'status': 'success',
+                'delivery_type': 'instant',
+                'code': code,
+                'message': 'تم استلام هديتك بنجاح!'
+            })
+        else:
+            instructions = gift.get('buyer_instructions', '')
+            try:
+                from extensions import bot, ADMIN_ID
+                if bot and ADMIN_ID:
+                    bot.send_message(ADMIN_ID, f"🎁 طلب هدية يدوي جديد!\nالقسم: {cat_name}\nالعميل: {user_id}\nالمطلوب: {instructions}")
+            except Exception:
+                pass
+            return jsonify({
+                'status': 'success',
+                'delivery_type': 'manual',
+                'message': 'تم تسجيل طلب هديتك! سيتم تنفيذه قريباً.'
+            })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'}), 500
+
+
 @web_bp.route('/api/rewards/category/<category_id>')
 def api_rewards_category(category_id):
     """تفاصيل قسم مكافأة معين للعميل"""

@@ -159,7 +159,49 @@
         }
 
         async function claimGift() {
-            alert('سيتم تفعيل الاستلام قريباً');
+            if (!confirm('هل تريد استخدام هديتك الآن؟')) return;
+            const btn = document.querySelector('.claim-btn');
+            if (btn) { btn.disabled = true; btn.textContent = 'جارِ الاستلام...'; }
+            try {
+                const res = await fetch('/api/rewards/claim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_id: CATEGORY_ID })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showGiftResult(data);
+                } else {
+                    alert(data.message || 'تعذّر الاستلام');
+                    if (btn) { btn.disabled = false; btn.textContent = 'استخدام الهدية'; }
+                }
+            } catch(e) {
+                alert('خطأ في الاتصال');
+                if (btn) { btn.disabled = false; btn.textContent = 'استخدام الهدية'; }
+            }
+        }
+
+        function showGiftResult(data) {
+            const content = document.getElementById('content');
+            let inner = '';
+            if (data.delivery_type === 'instant') {
+                inner = `
+                    <div class="gift-icon">🎉</div>
+                    <h3>${data.message}</h3>
+                    <p>هذه هي هديتك المجانية:</p>
+                    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:16px;margin:16px 0;word-break:break-all;font-size:15px;line-height:1.8;">${(data.code||'').replace(/</g,'&lt;')}</div>
+                    <p style="font-size:12px;opacity:0.8;">احفظ الكود في مكان آمن</p>`;
+            } else {
+                inner = `
+                    <div class="gift-icon">🎉</div>
+                    <h3>${data.message}</h3>
+                    <p>سيتواصل معك فريقنا قريباً لتنفيذ هديتك.</p>`;
+            }
+            content.innerHTML = `
+                <div class="cat-hero"><h2>🎁 مبروك!</h2></div>
+                <div class="gift-card ready" style="text-align:center;">${inner}
+                    <button class="claim-btn" onclick="window.location.href='/rewards'" style="margin-top:16px;">العودة للمكافآت</button>
+                </div>`;
         }
 
         document.addEventListener('DOMContentLoaded', loadCategory);
