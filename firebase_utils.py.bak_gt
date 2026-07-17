@@ -1503,20 +1503,6 @@ def get_loyalty_counts(user_id):
         logger.error(f"get_loyalty_counts error: {e}")
         return {}
 
-def get_category_gift_title(category_id):
-    """اسم/عنوان اول هدية متاحة لقسم معين (للعرض للعميل بدون كشف السري)."""
-    if not db or not category_id:
-        return ''
-    try:
-        for gd in db.collection('category_gifts').stream():
-            g = gd.to_dict()
-            if str(g.get('category_id', '')) == str(category_id) and not g.get('used', False):
-                return g.get('gift_title', '') or ''
-        return ''
-    except Exception as e:
-        logger.error(f"get_category_gift_title error: {e}")
-        return ''
-
 def count_available_gifts(category_id):
     """عدد الهدايا المتاحة (غير المستخدمة) لقسم معين"""
     if not db or not category_id:

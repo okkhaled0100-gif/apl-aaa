@@ -145,10 +145,6 @@
                 <button type="button" class="delivery-btn active" id="giftInstantBtn" onclick="setGiftDelivery('instant')">⚡ فوري</button>
                 <button type="button" class="delivery-btn" id="giftManualBtn" onclick="setGiftDelivery('manual')">👨‍💼 يدوي</button>
             </div>
-            <div id="giftTitleField">
-                <label class="gift-label">اسم الهدية (يظهر للعميل)</label>
-                <input id="giftTitle" class="gift-input" type="text" placeholder="مثال: اشتراك شاهد VIP شهر">
-            </div>
             <div id="giftInstantField">
                 <label class="gift-label">الكود / البيانات السرية</label>
                 <textarea id="giftHiddenData" class="gift-input" rows="3" placeholder="الكود الذي سيُسلّم للعميل"></textarea>
@@ -327,9 +323,6 @@ async function loadGifts() {
 async function addGift() {
     if (!currentGiftCatId) return;
     const body = { category_id: currentGiftCatId, delivery_type: currentGiftDelivery };
-    const gt = document.getElementById('giftTitle').value.trim();
-    if (!gt) { showToast('أدخل اسم الهدية', 'error'); return; }
-    body.gift_title = gt;
     if (currentGiftDelivery === 'instant') {
         const hd = document.getElementById('giftHiddenData').value.trim();
         if (!hd) { showToast('أدخل الكود', 'error'); return; }
@@ -347,7 +340,6 @@ async function addGift() {
         const data = await res.json();
         if (data.status === 'success') {
             showToast('تم إضافة الهدية', 'success');
-            document.getElementById('giftTitle').value = '';
             document.getElementById('giftHiddenData').value = '';
             document.getElementById('giftInstructions').value = '';
             loadGifts();

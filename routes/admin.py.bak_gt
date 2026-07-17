@@ -1336,7 +1336,6 @@ def api_add_product_new():
         details = data.get('details', '').strip()
         hidden_data = data.get('hidden_data', '').strip()
         buyer_instructions = data.get('buyer_instructions', '').strip()
-        gift_title = data.get('gift_title', '').strip()
         image = data.get('image', '').strip()
         delivery_type = data.get('delivery_type', 'instant').strip()
         
@@ -1621,7 +1620,6 @@ def api_add_gift():
         delivery_type = data.get('delivery_type', 'instant').strip()
         hidden_data = data.get('hidden_data', '').strip()
         buyer_instructions = data.get('buyer_instructions', '').strip()
-        gift_title = data.get('gift_title', '').strip()
         if delivery_type not in ['instant', 'manual']:
             delivery_type = 'instant'
         if not cat_id:
@@ -1642,7 +1640,6 @@ def api_add_gift():
             'delivery_type': delivery_type,
             'hidden_data': encrypted,
             'buyer_instructions': buyer_instructions,
-            'gift_title': gift_title,
             'used': False,
             'created_at': time.time()
         }

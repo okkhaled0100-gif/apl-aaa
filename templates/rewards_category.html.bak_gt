@@ -112,8 +112,6 @@
             const goal = cat.goal || 10;
             const ready = cat.ready;
             const giftsAvailable = cat.gifts_available || 0;
-            const giftTitle = (cat.gift_title || '').replace(/</g,'&lt;');
-            const giftTitleHtml = giftTitle ? `<p style="font-weight:bold;font-size:16px;margin:6px 0;">🎁 ${giftTitle}</p>` : '';
             const img = cat.image_url || 'https://placehold.co/80x80/6c5ce7/ffffff?text=' + encodeURIComponent(cat.name);
 
             let cards = '';
@@ -129,7 +127,6 @@
                         <div class="gift-card ready">
                             <div class="gift-icon">🎁</div>
                             <h3>مبروك! هديتك جاهزة</h3>
-                            ${giftTitleHtml}
                             <p>أكملت ${goal} مشتريات. استلم هديتك المجانية الآن!</p>
                             <button class="claim-btn" onclick="claimGift()">استخدام الهدية</button>
                         </div>`;
@@ -138,7 +135,6 @@
                         <div class="gift-card ready">
                             <div class="gift-icon">🎁</div>
                             <h3>هديتك جاهزة!</h3>
-                            ${giftTitleHtml}
                             <p>لكن لا توجد هدايا متوفرة حالياً. سيتم توفيرها قريباً، وتقدّمك محفوظ.</p>
                             <button class="claim-btn" disabled>بانتظار توفّر الهدايا</button>
                         </div>`;
@@ -148,7 +144,6 @@
                     <div class="gift-card">
                         <div class="gift-icon">🔒</div>
                         <h3>الهدية مقفلة</h3>
-                        ${giftTitleHtml}
                         <p>أكمل ${goal} مشتريات لفتح هديتك. باقي ${goal - count}!</p>
                     </div>`;
             }

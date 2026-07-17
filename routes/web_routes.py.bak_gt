@@ -217,12 +217,6 @@ def api_rewards_category(category_id):
             gifts_available = count_available_gifts(category_id)
         except Exception:
             gifts_available = 0
-        gift_title = ''
-        try:
-            from firebase_utils import get_category_gift_title
-            gift_title = get_category_gift_title(category_id)
-        except Exception:
-            gift_title = ''
         goal = 10
         return jsonify({
             'status': 'success',
@@ -233,8 +227,7 @@ def api_rewards_category(category_id):
                 'purchase_count': purchase_count,
                 'goal': goal,
                 'ready': purchase_count >= goal,
-                'gifts_available': gifts_available,
-                'gift_title': gift_title
+                'gifts_available': gifts_available
             }
         })
     except Exception as e:
