@@ -1555,28 +1555,36 @@ def claim_category_gift(user_id, category_id, category_name, goal=10):
         loyalty_ref = db.collection('loyalty').document(str(user_id))
         transaction = db.transaction()
 
+        # تحقق العداد قبل المعاملة (قراءة من السيرفر)
+        lsnap = loyalty_ref.get()
+        counts = {}
+        if lsnap.exists:
+            counts = lsnap.to_dict().get('counts', {})
+        current = int(counts.get(category_name, 0))
+        if current < goal:
+            return (False, 'لم تكمل الشراء المطلوب بعد')
+
+        claim_state = {'ok': False}
+
         @_fs.transactional
         def _do_claim(trans):
-            loyalty_snap = loyalty_ref.get(transaction=trans)
-            counts = {}
-            if loyalty_snap.exists:
-                counts = loyalty_snap.to_dict().get('counts', {})
-            current = int(counts.get(category_name, 0))
-            if current < goal:
-                raise ValueError('لم تكمل الشراء المطلوب بعد')
             gsnap = gift_ref.get(transaction=trans)
-            if not gsnap.exists or gsnap.to_dict().get('used', False):
-                raise ValueError('الهدية لم تعد متاحة، حاول مرة أخرى')
+            if (not gsnap.exists) or gsnap.to_dict().get('used', False):
+                claim_state['ok'] = False
+                return
             trans.update(gift_ref, {
                 'used': True,
                 'used_by': str(user_id),
                 'used_at': _fs.SERVER_TIMESTAMP
             })
-            counts[category_name] = current - goal if current > goal else 0
-            trans.set(loyalty_ref, {'counts': counts}, merge=True)
-            return True
+            claim_state['ok'] = True
 
         _do_claim(transaction)
+        if not claim_state['ok']:
+            return (False, 'الهدية لم تعد متاحة، حاول مرة أخرى')
+        # تصفير العداد بعد نجاح المعاملة
+        counts[category_name] = current - goal if current > goal else 0
+        loyalty_ref.set({'counts': counts}, merge=True)
         return (True, gift_data)
     except ValueError as ve:
         return (False, str(ve))
