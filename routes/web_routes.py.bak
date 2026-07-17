@@ -150,24 +150,19 @@ def api_rewards_claim():
         if not cat or not cat.get('rewards_enabled', False):
             return jsonify({'status': 'error', 'message': 'القسم غير متاح للمكافآت'}), 404
         cat_name = cat.get('name', '')
-        from firebase_utils import peek_category_gift
-        ok, result = peek_category_gift(user_id, category_id, cat_name, goal=10)
+        ok, result = claim_category_gift(user_id, category_id, cat_name, goal=10)
         if not ok:
             return jsonify({'status': 'error', 'message': result})
         gift = result
         delivery_type = gift.get('delivery_type', 'instant')
         if delivery_type == 'instant':
-            ok2, result2 = claim_category_gift(user_id, category_id, cat_name, goal=10)
-            if not ok2:
-                return jsonify({'status': 'error', 'message': result2})
-            gift2 = result2
             code = ''
             try:
                 from encryption_utils import decrypt_data
-                enc = gift2.get('hidden_data', '')
+                enc = gift.get('hidden_data', '')
                 code = decrypt_data(enc) if enc else ''
             except Exception:
-                code = gift2.get('hidden_data', '')
+                code = gift.get('hidden_data', '')
             return jsonify({
                 'status': 'success',
                 'delivery_type': 'instant',
@@ -176,11 +171,16 @@ def api_rewards_claim():
             })
         else:
             instructions = gift.get('buyer_instructions', '')
+            try:
+                from extensions import bot, ADMIN_ID
+                if bot and ADMIN_ID:
+                    bot.send_message(ADMIN_ID, f"🎁 طلب هدية يدوي جديد!\nالقسم: {cat_name}\nالعميل: {user_id}\nالمطلوب: {instructions}")
+            except Exception:
+                pass
             return jsonify({
                 'status': 'success',
                 'delivery_type': 'manual',
-                'instructions': instructions,
-                'message': 'أكمل بيانات الهدية'
+                'message': 'تم تسجيل طلب هديتك! سيتم تنفيذه قريباً.'
             })
     except Exception as e:
         import traceback
@@ -479,81 +479,3 @@ def faq():
                           title="الأسئلة الشائعة",
                           current_year=datetime.now().year)
 
-
-# MARKER_SUBMIT_MANUAL
-@web_bp.route('/api/rewards/submit_manual', methods=['POST'])
-def api_rewards_submit_manual():
-    """استلام هدية يدوية: يسحب الهدية بعد ادخال العميل بياناته، يحفظ الطلب، يبلغ الادمن."""
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'status': 'error', 'message': 'غير مسجل'}), 401
-    try:
-        from firebase_utils import get_toggle, claim_category_gift, db
-        try:
-            if not get_toggle('rewards_system', False):
-                return jsonify({'status': 'error', 'message': 'النظام غير مفعّل'}), 403
-        except Exception:
-            pass
-        data = request.get_json() or {}
-        category_id = str(data.get('category_id', '')).strip()
-        user_input = str(data.get('user_input', '')).strip()
-        if not category_id:
-            return jsonify({'status': 'error', 'message': 'معرف القسم مطلوب'})
-        if not user_input:
-            return jsonify({'status': 'error', 'message': 'البيانات المطلوبة ناقصة'})
-        cats = get_categories()
-        cat = None
-        for c in cats:
-            if c.get('id', '') == category_id:
-                cat = c
-                break
-        if not cat or not cat.get('rewards_enabled', False):
-            return jsonify({'status': 'error', 'message': 'القسم غير متاح للمكافآت'}), 404
-        cat_name = cat.get('name', '')
-        ok, result = claim_category_gift(user_id, category_id, cat_name, goal=10)
-        if not ok:
-            return jsonify({'status': 'error', 'message': result})
-        gift = result
-        instructions = gift.get('buyer_instructions', '')
-        buyer_name = ''
-        try:
-            udoc = db.collection('users').document(str(user_id)).get()
-            if udoc.exists:
-                ud = udoc.to_dict()
-                buyer_name = ud.get('name') or ud.get('username') or ud.get('telegram_name') or ''
-        except Exception:
-            pass
-        try:
-            from google.cloud import firestore as _fs
-            order_doc = {
-                'item_name': f'هدية: {cat_name}',
-                'price': 0,
-                'buyer_id': str(user_id),
-                'buyer_name': buyer_name or f'مستخدم {user_id}',
-                'seller_id': 'system',
-                'seller_name': 'مكافآت المتجر',
-                'category': cat_name,
-                'status': 'pending',
-                'delivery_type': 'manual',
-                'is_gift': True,
-                'buyer_instructions': instructions,
-                'user_input': user_input,
-                'details': f'المطلوب: {instructions}\nبيانات العميل: {user_input}',
-                'created_at': _fs.SERVER_TIMESTAMP
-            }
-            db.collection('orders').add(order_doc)
-        except Exception:
-            pass
-        try:
-            from extensions import bot, ADMIN_ID
-            if bot and ADMIN_ID:
-                bot.send_message(ADMIN_ID, f"🎁 طلب هدية يدوي جديد!\nالقسم: {cat_name}\nالعميل: {buyer_name or user_id} ({user_id})\nالمطلوب: {instructions}\nبيانات العميل: {user_input}")
-        except Exception:
-            pass
-        return jsonify({
-            'status': 'success',
-            'delivery_type': 'manual',
-            'message': 'تم تسجيل طلب هديتك! سيتم تنفيذه قريباً وستجده في مشترياتي.'
-        })
-    except Exception:
-        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'}), 500

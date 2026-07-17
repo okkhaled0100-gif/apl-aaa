@@ -170,8 +170,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    if (data.delivery_type === 'manual') { showManualForm(data); }
-                    else { showGiftResult(data); }
+                    showGiftResult(data);
                 } else {
                     alert(data.message || 'تعذّر الاستلام');
                     if (btn) { btn.disabled = false; btn.textContent = 'استخدام الهدية'; }
@@ -182,44 +181,6 @@
             }
         }
 
-        function showManualForm(data) {
-            const content = document.getElementById('content');
-            const instr = (data.instructions || 'أدخل البيانات المطلوبة').replace(/</g,'&lt;');
-            content.innerHTML = `
-                <div class="cat-hero"><h2>🎁 هديتك جاهزة!</h2></div>
-                <div class="gift-card ready" style="text-align:center;">
-                    <div class="gift-icon">🎁</div>
-                    <h3>أكمل بيانات الهدية</h3>
-                    <p style="margin:12px 0;">المطلوب منك:</p>
-                    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:14px;margin:10px 0;font-size:15px;line-height:1.8;">${instr}</div>
-                    <textarea id="manualInput" rows="4" placeholder="اكتب بياناتك هنا..." style="width:100%;box-sizing:border-box;border-radius:12px;padding:12px;font-size:15px;border:none;margin:10px 0;resize:vertical;"></textarea>
-                    <button class="claim-btn" id="submitManualBtn" onclick="submitManual()">إرسال الطلب</button>
-                </div>`;
-        }
-        async function submitManual() {
-            const ta = document.getElementById('manualInput');
-            const val = (ta ? ta.value : '').trim();
-            if (!val) { alert('الرجاء إدخال البيانات المطلوبة'); return; }
-            const btn = document.getElementById('submitManualBtn');
-            if (btn) { btn.disabled = true; btn.textContent = 'جارِ الإرسال...'; }
-            try {
-                const res = await fetch('/api/rewards/submit_manual', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category_id: CATEGORY_ID, user_input: val })
-                });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    showGiftResult({ delivery_type: 'manual', message: data.message });
-                } else {
-                    alert(data.message || 'تعذّر الإرسال');
-                    if (btn) { btn.disabled = false; btn.textContent = 'إرسال الطلب'; }
-                }
-            } catch(e) {
-                alert('خطأ في الاتصال');
-                if (btn) { btn.disabled = false; btn.textContent = 'إرسال الطلب'; }
-            }
-        }
         function showGiftResult(data) {
             const content = document.getElementById('content');
             let inner = '';

@@ -1,0 +1,55 @@
+{% extends 'admin_base.html' %}
+{% block title %}طلبات الهدايا - لوحة التحكم{% endblock %}
+{% block content %}
+<div style="padding:20px;max-width:1000px;margin:0 auto;">
+  <h2 style="margin-bottom:20px;">🎁 طلبات الهدايا اليدوية</h2>
+  <div id="giftReqStatus" style="margin-bottom:14px;color:#888;">جارِ التحميل...</div>
+  <div id="giftReqList"></div>
+</div>
+<script>
+async function loadGiftRequests() {
+  const st = document.getElementById('giftReqStatus');
+  const list = document.getElementById('giftReqList');
+  try {
+    const res = await fetch('/api/admin/gift_requests');
+    const data = await res.json();
+    if (data.status !== 'success') { st.textContent = data.message || 'خطأ'; return; }
+    const reqs = data.requests || [];
+    if (!reqs.length) { st.textContent = 'لا توجد طلبات حالياً'; list.innerHTML = ''; return; }
+    st.textContent = 'إجمالي الطلبات: ' + reqs.length;
+    list.innerHTML = reqs.map(r => {
+      const done = r.status === 'completed';
+      const badge = done
+        ? '<span style="background:#1b5e20;color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;">تم التنفيذ</span>'
+        : '<span style="background:#e65100;color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;">قيد التنفيذ</span>';
+      const esc = s => (s||'').replace(/</g,'&lt;');
+      const btn = done ? '' :
+        `<button onclick="markDone('${r.id}')" style="margin-top:10px;background:#2e7d32;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;">تعليم كمنفّذ</button>`;
+      return `<div style="background:#1e1e2e;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #333;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong>${esc(r.category)}</strong>${badge}
+        </div>
+        <div style="font-size:14px;color:#aaa;line-height:1.9;">
+          <div>العميل: ${esc(r.buyer_name)} (${esc(r.buyer_id)})</div>
+          <div>المطلوب: ${esc(r.instructions)}</div>
+          <div style="color:#fff;">بيانات العميل: ${esc(r.user_input)}</div>
+        </div>${btn}
+      </div>`;
+    }).join('');
+  } catch(e) { st.textContent = 'خطأ في الاتصال'; }
+}
+async function markDone(id) {
+  if (!confirm('تعليم الطلب كمنفّذ؟')) return;
+  try {
+    const res = await fetch('/api/admin/gift_request_done', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ order_id: id })
+    });
+    const data = await res.json();
+    if (data.status === 'success') loadGiftRequests();
+    else alert(data.message || 'تعذّر التحديث');
+  } catch(e) { alert('خطأ في الاتصال'); }
+}
+document.addEventListener('DOMContentLoaded', loadGiftRequests);
+</script>
+{% endblock %}

@@ -1534,35 +1534,6 @@ def count_available_gifts(category_id):
         logger.error(f"count_available_gifts error: {e}")
         return 0
 
-def peek_category_gift(user_id, category_id, category_name, goal=10):
-    """يتحقق من الاهلية ويرجع بيانات الهدية بدون سحبها (للهدايا اليدوية)."""
-    if not db or not user_id or not category_id:
-        return (False, 'بيانات ناقصة')
-    try:
-        gift_data = None
-        for gd in db.collection('category_gifts').stream():
-            g = gd.to_dict()
-            if str(g.get('category_id', '')) == str(category_id) and not g.get('used', False):
-                gift_data = g
-                break
-        if not gift_data:
-            return (False, 'لا توجد هدايا متاحة حالياً')
-        loyalty_ref = db.collection('loyalty').document(str(user_id))
-        lsnap = loyalty_ref.get()
-        counts = {}
-        if lsnap.exists:
-            counts = lsnap.to_dict().get('counts', {})
-        current = int(counts.get(category_name, 0))
-        if current < goal:
-            return (False, 'لم تكمل الشراء المطلوب بعد')
-        return (True, gift_data)
-    except Exception as e:
-        try:
-            logger.error(f"peek_category_gift error: {e}")
-        except Exception:
-            pass
-        return (False, 'حدث خطأ، حاول لاحقاً')
-
 def claim_category_gift(user_id, category_id, category_name, goal=10):
     """أخذ هدية القسم بمعاملة آمنة: يتحقق العداد، يسحب هدية، يصفّر العداد.
     يرجع (نجاح, رسالة/بيانات_الهدية)."""
