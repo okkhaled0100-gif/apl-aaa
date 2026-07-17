@@ -1518,3 +1518,18 @@ def reset_loyalty(user_id, category_id):
     except Exception as e:
         logger.error(f"reset_loyalty error: {e}")
         return False
+
+def count_available_gifts(category_id):
+    """عدد الهدايا المتاحة (غير المستخدمة) لقسم معين"""
+    if not db or not category_id:
+        return 0
+    try:
+        count = 0
+        for gd in db.collection('category_gifts').stream():
+            g = gd.to_dict()
+            if str(g.get('category_id', '')) == str(category_id) and not g.get('used', False):
+                count += 1
+        return count
+    except Exception as e:
+        logger.error(f"count_available_gifts error: {e}")
+        return 0

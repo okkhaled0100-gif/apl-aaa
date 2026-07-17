@@ -150,16 +150,10 @@ def api_rewards_category(category_id):
         purchase_count = int(counts.get(cat_name, 0))
         gifts_available = 0
         try:
-            all_gifts = db.collection('category_gifts').stream() if db else []
-            _total_seen = 0
-            for gd in all_gifts:
-                _gdata = gd.to_dict()
-                _total_seen += 1
-                if str(_gdata.get('category_id', '')) == str(category_id) and not _gdata.get('used', False):
-                    gifts_available += 1
-            print(f"🎁 DEBUG rewards: category_id={category_id}, total_gifts_in_db={_total_seen}, available_for_this_cat={gifts_available}")
-        except Exception as _e:
-            print(f"🎁 DEBUG rewards ERROR: {_e}")
+            from firebase_utils import count_available_gifts
+            gifts_available = count_available_gifts(category_id)
+        except Exception:
+            gifts_available = 0
         goal = 10
         return jsonify({
             'status': 'success',
