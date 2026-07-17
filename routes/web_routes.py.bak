@@ -183,10 +183,7 @@ def api_rewards_claim():
                 'message': 'تم تسجيل طلب هديتك! سيتم تنفيذه قريباً.'
             })
     except Exception as e:
-        # PATCH_CLAIM_DBG
-        import traceback
-        print('CLAIM_ERR', traceback.format_exc(), flush=True)
-        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً', 'debug': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'}), 500
 
 
 @web_bp.route('/api/rewards/category/<category_id>')
