@@ -1503,6 +1503,22 @@ def get_loyalty_counts(user_id):
         logger.error(f"get_loyalty_counts error: {e}")
         return {}
 
+def reset_loyalty(user_id, category_id):
+    """تصفير عداد قسم بعد أخذ الهدية"""
+    if not db or not user_id or not category_id:
+        return False
+    try:
+        ref = db.collection('loyalty').document(str(user_id))
+        doc = ref.get()
+        data = doc.to_dict() if doc.exists else {}
+        counts = data.get('counts', {})
+        counts[category_id] = 0
+        ref.set({'counts': counts}, merge=True)
+        return True
+    except Exception as e:
+        logger.error(f"reset_loyalty error: {e}")
+        return False
+
 def count_available_gifts(category_id):
     """عدد الهدايا المتاحة (غير المستخدمة) لقسم معين"""
     if not db or not category_id:
