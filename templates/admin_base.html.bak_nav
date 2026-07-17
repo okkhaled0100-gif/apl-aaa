@@ -507,10 +507,6 @@
                 <span class="icon">🎁</span>
                 <span class="text">المكافآت</span>
             </a>
-            <a href="/admin/gift-requests" class="nav-item {% if active_page == 'gift_requests' %}active{% endif %}">
-                <span class="icon">📦</span>
-                <span class="text">طلبات الهدايا</span>
-            </a>
             <a href="/admin/toggles" class="nav-item {% if active_page == 'toggles' %}active{% endif %}">
                 <span class="icon">⚙️</span>
                 <span class="text">مفاتيح التحكم</span>
