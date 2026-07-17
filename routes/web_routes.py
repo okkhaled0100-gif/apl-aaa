@@ -1,7 +1,7 @@
 """
 Web Routes - صفحات الويب
 """
-from flask import Blueprint, render_template, session, redirect, jsonify
+from flask import Blueprint, render_template, session, redirect, jsonify, request
 from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
     get_products_by_category, get_product_by_id,
@@ -183,10 +183,8 @@ def api_rewards_claim():
                 'message': 'تم تسجيل طلب هديتك! سيتم تنفيذه قريباً.'
             })
     except Exception as e:
-        # PATCH_CLAIM_DBG
         import traceback
-        print('CLAIM_ERR', traceback.format_exc(), flush=True)
-        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً', 'debug': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'}), 500
 
 
 @web_bp.route('/api/rewards/category/<category_id>')
