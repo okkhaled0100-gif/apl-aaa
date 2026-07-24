@@ -150,6 +150,7 @@ def wallet_page():
                           charges_count=charges_count,
                           purchases_count=purchases_count,
                           email_verified=email_verified,
+                          is_merchant=_wallet_is_merchant(user_id),
                           links_create_enabled=get_toggle('payment_links_create', True))
 
 
@@ -417,3 +418,12 @@ def charge_balance_api():
         'message': f'تم شحن {amount} ريال بنجاح!',
         'new_balance': new_balance
     })
+
+
+def _wallet_is_merchant(user_id):
+    """هل المستخدم تاجر؟ (لروابط الدفع)"""
+    try:
+        from firebase_utils import is_wholesaler
+        return bool(is_wholesaler(user_id))
+    except Exception:
+        return False

@@ -464,6 +464,11 @@
                         <div style="color:#ff6b6b; font-weight:bold; margin-bottom:8px;">⏸️ الخدمة متوقفة يومي الجمعة والسبت</div>
                         <div style="color:#b2bec3; font-size:13px;">إنشاء الروابط متاح من الأحد إلى الخميس.</div>
                     </div>
+                    {% elif not is_merchant %}
+                    <div style="background:rgba(108,92,231,0.12); border:1px solid rgba(108,92,231,0.4); border-radius:12px; padding:16px; text-align:center; margin-top:10px;">
+                        <div style="color:#a29bfe; font-weight:bold; margin-bottom:8px;">🏪 هذه الميزة متاحة للتجار فقط</div>
+                        <div style="color:#b2bec3; font-size:13px;">إنشاء روابط الدفع متاح لحسابات التجار. للاستفسار تواصل مع الإدارة.</div>
+                    </div>
                     {% elif email_verified %}
                     <button type="submit" id="linkBtn" class="pay-btn">
                         <span id="linkBtnText">إنشاء رابط قابل للمشاركة</span>

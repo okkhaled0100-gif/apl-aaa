@@ -98,6 +98,15 @@ def create_recharge_link():
         if not get_toggle('payment_links_create', True):
             return jsonify({'success': False, 'error': 'إنشاء روابط الدفع متوقف مؤقتاً'})
 
+        # حماية: روابط الدفع متاحة للتجار فقط
+        try:
+            from firebase_utils import is_wholesaler as _is_wh
+            if not _is_wh(user_id):
+                return jsonify({'success': False, 'error': 'إنشاء روابط الدفع متاح للتجار فقط'})
+        except Exception as _e:
+            logger.error(f"خطأ في التحقق من صفة التاجر: {_e}")
+            return jsonify({'success': False, 'error': 'تعذّر التحقق من الصلاحية'})
+
         # حماية: يجب توثيق الإيميل لإنشاء روابط الدفع (لاستقبال الإشعارات)
         try:
             _udoc = db.collection('users').document(str(user_id)).get()
