@@ -56,8 +56,8 @@ def direct_recharge():
         
         try:
             amount_int = int(float(amount))
-            if amount_int < 10 or amount_int > 500:  # MAX_CHARGE_500
-                return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 500 ريال'})
+            if amount_int < 25 or amount_int > 500:  # MAX_CHARGE_500
+                return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 25 و 500 ريال'})
         except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         
@@ -137,8 +137,10 @@ def create_recharge_link():
         
         try:
             amount_int = int(float(amount))
-            if amount_int < 10 or amount_int > 500:  # MAX_LINK_500
-                return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 500 ريال'})
+            from firebase_utils import get_merchant_link_limit as _get_link_max
+            _link_max = _get_link_max(user_id)
+            if amount_int < 25 or amount_int > _link_max:  # MAX_LINK_PER_MERCHANT
+                return jsonify({'success': False, 'error': f'المبلغ يجب أن يكون بين 25 و {_link_max} ريال'})
         except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         

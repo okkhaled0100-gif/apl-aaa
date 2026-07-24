@@ -363,6 +363,14 @@
                         <span style="color: #a29bfe; font-weight: 600;">🏪 تاجر (يرى أسعار الجملة)</span>
                         <button class="btn btn-danger btn-sm" onclick="toggleWholesaler('${userId}', false)">❌ إلغاء صفة التاجر</button>
                     </div>
+                    <div style="background: rgba(0,184,148,0.10); border: 1px solid rgba(0,184,148,0.35); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <div style="color: #00b894; font-weight: 600; margin-bottom: 10px;">🔗 حد روابط الدفع</div>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="number" id="linkLimitInput" value="${c.link_limit || ''}" placeholder="500" min="25" max="25000" style="flex: 1; min-width: 110px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #fff; text-align: center; font-size: 15px;">
+                            <button class="btn btn-primary btn-sm" onclick="saveLinkLimit('${userId}')">حفظ</button>
+                        </div>
+                        <div style="color: var(--muted); font-size: 12px; margin-top: 8px;">اتركه فارغاً للحد الافتراضي 500 ريال. الأقصى المسموح 25000 ريال.</div>
+                    </div>
                     ` : `
                     <div style="background: rgba(108,117,125,0.1); border: 1px solid rgba(108,117,125,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                         <span style="color: var(--muted);">عميل عادي</span>
@@ -444,6 +452,35 @@
     function closeModal() {
         document.getElementById('customerModal').style.display = 'none';
     }
+    async function saveLinkLimit(userId) {
+        const input = document.getElementById('linkLimitInput');
+        if (!input) return;
+        const raw = input.value.trim();
+        if (raw !== '') {
+            const num = parseInt(raw, 10);
+            if (isNaN(num) || num < 25 || num > 25000) {
+                showToast('الحد يجب أن يكون بين 25 و 25000 ريال', 'error');
+                return;
+            }
+        }
+        try {
+            const res = await fetch('/api/admin/set_link_limit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, limit: raw })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('تم حفظ الحد: ' + data.limit + ' ريال', 'success');
+                viewCustomer(userId);
+            } else {
+                showToast(data.message || 'فشل الحفظ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
     async function toggleWholesaler(userId, value) {
         try {
             const res = await fetch('/api/admin/toggle_wholesaler', {

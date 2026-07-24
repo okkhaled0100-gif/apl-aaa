@@ -152,6 +152,7 @@ def wallet_page():
                           email_verified=email_verified,
                           is_merchant=_wallet_is_merchant(user_id),
                           contact_whatsapp=_wallet_whatsapp(),
+                          link_limit=_wallet_link_limit(user_id),
                           links_create_enabled=get_toggle('payment_links_create', True))
 
 
@@ -437,3 +438,12 @@ def _wallet_whatsapp():
         return CONTACT_WHATSAPP
     except Exception:
         return "https://wa.me/966504104956"
+
+
+def _wallet_link_limit(user_id):
+    """حد روابط الدفع لهذا المستخدم"""
+    try:
+        from firebase_utils import get_merchant_link_limit
+        return int(get_merchant_link_limit(user_id))
+    except Exception:
+        return 500

@@ -412,11 +412,11 @@
                     <div style="margin-bottom: 20px;">
                         <label class="form-label"> المبلغ المراد شحنه</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <!-- MAX_CHARGE_500 --><input type="number" id="chargeAmount" placeholder="100" min="10" max="500" required oninput="updateBonusDisplay()"
+                            <!-- MAX_CHARGE_500 --><input type="number" id="chargeAmount" placeholder="100" min="25" max="500" required oninput="updateBonusDisplay()"
                                    class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
                             <span style="color: #b2bec3; font-size: 16px;">ريال</span>
                         </div>
-                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 500 ريال</p>
+                        <p class="form-hint">الحد الأدنى: 25 ريال | الحد الأقصى: 500 ريال</p>
                     </div>
                     <div class="amount-buttons">
                         <button type="button" class="amount-btn" onclick="setAmount(25)">25</button>
@@ -447,11 +447,11 @@
                     <div style="margin-bottom: 20px;">
                         <label class="form-label"> المبلغ المراد إرساله</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <!-- MAX_LINK_500 --><input type="number" id="linkAmount" placeholder="100" min="10" max="500" required
+                            <!-- MAX_LINK_DYNAMIC --><input type="number" id="linkAmount" placeholder="100" min="25" max="{{ link_limit }}" required
                                    class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
                             <span style="color: #b2bec3; font-size: 16px;">ريال</span>
                         </div>
-                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 500 ريال</p>
+                        <p class="form-hint">الحد الأدنى: 25 ريال | الحد الأقصى: {{ link_limit }} ريال</p>
                     </div>
                     <div class="amount-buttons">
                         <button type="button" class="amount-btn" onclick="setLinkAmount(25)">25</button>
@@ -568,8 +568,8 @@
             showToast(' الرجاء إدخال رقم جوال صحيح', 'error');
             return;
         }
-        if(!amount || amount < 10 || amount > 500) {
-            showToast(' المبلغ يجب أن يكون بين 10 و 500 ريال', 'error');
+        if(!amount || amount < 25 || amount > 500) {
+            showToast(' المبلغ يجب أن يكون بين 25 و 500 ريال', 'error');
             return;
         }
         let cleanPhone = phone;
@@ -633,8 +633,9 @@
         const btn = document.getElementById('linkBtn');
         const btnText = document.getElementById('linkBtnText');
         
-        if(!amount || amount < 10 || amount > 500) {
-            showToast(' المبلغ يجب أن يكون بين 10 و 500 ريال', 'error');
+        const maxLink = parseInt(document.getElementById('linkAmount').max) || 500;
+        if(!amount || amount < 25 || amount > maxLink) {
+            showToast('المبلغ يجب أن يكون بين 25 و ' + maxLink + ' ريال', 'error');
             return;
         }
         

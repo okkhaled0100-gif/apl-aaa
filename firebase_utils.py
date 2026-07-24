@@ -1460,6 +1460,52 @@ def set_wholesaler(user_id, value):
         print(f"\u26a0\ufe0f خطأ في تحديث التاجر {user_id}: {e}")
         return False
 
+# حدود روابط الدفع
+DEFAULT_LINK_LIMIT = 500
+MAX_LINK_LIMIT = 25000
+MIN_AMOUNT = 25
+
+def get_merchant_link_limit(user_id):
+    """الحد الأقصى لروابط الدفع لهذا التاجر (افتراضي 500)"""
+    try:
+        if not db or not user_id:
+            return DEFAULT_LINK_LIMIT
+        doc = db.collection('users').document(str(user_id)).get()
+        if doc.exists:
+            raw = doc.to_dict().get('link_limit')
+            if raw is None:
+                return DEFAULT_LINK_LIMIT
+            val = int(float(raw))
+            if val < MIN_AMOUNT:
+                return DEFAULT_LINK_LIMIT
+            if val > MAX_LINK_LIMIT:
+                return MAX_LINK_LIMIT
+            return val
+    except Exception as e:
+        print(f"خطأ في جلب حد الروابط {user_id}: {e}")
+    return DEFAULT_LINK_LIMIT
+
+def set_merchant_link_limit(user_id, value):
+    """تحديد حد روابط الدفع لتاجر. القيمة 0 أو فارغة تعني الرجوع للافتراضي"""
+    try:
+        if not db or not user_id:
+            return (False, 'بيانات ناقصة')
+        if value in (None, '', 0, '0'):
+            db.collection('users').document(str(user_id)).set({'link_limit': None}, merge=True)
+            return (True, DEFAULT_LINK_LIMIT)
+        val = int(float(value))
+        if val < MIN_AMOUNT:
+            return (False, f'الحد الأدنى {MIN_AMOUNT} ريال')
+        if val > MAX_LINK_LIMIT:
+            return (False, f'الحد الأقصى المسموح {MAX_LINK_LIMIT} ريال')
+        db.collection('users').document(str(user_id)).set({'link_limit': val}, merge=True)
+        return (True, val)
+    except (ValueError, TypeError):
+        return (False, 'القيمة يجب أن تكون رقماً')
+    except Exception as e:
+        print(f"خطأ في تحديد حد الروابط {user_id}: {e}")
+        return (False, 'حدث خطأ')
+
 def get_product_price(product, user_id=None):
     """السعر المناسب: سعر التاجر إن كان تاجراً وللمنتج سعر تاجر، وإلا العادي"""
     try:

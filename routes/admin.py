@@ -1949,6 +1949,40 @@ def api_add_customer():
         return jsonify({'status': 'error', 'message': 'حدث خطأ أثناء الإضافة'})
 
 
+@admin_bp.route('/api/admin/set_link_limit', methods=['POST'])
+def api_set_link_limit():
+    """تحديد حد روابط الدفع لتاجر معين"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    try:
+        data = request.json or {}
+        target_id = str(data.get('user_id', '')).strip()
+        raw_limit = data.get('limit', '')
+        if not target_id:
+            return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+        from firebase_utils import get_merchant_link_limit, set_merchant_link_limit
+        old_limit = get_merchant_link_limit(target_id)
+        ok, result = set_merchant_link_limit(target_id, raw_limit)
+        if not ok:
+            return jsonify({'status': 'error', 'message': result})
+        # تسجيل التغيير
+        try:
+            if db:
+                db.collection('link_limit_logs').add({
+                    'user_id': target_id,
+                    'old_limit': old_limit,
+                    'new_limit': result,
+                    'changed_by': str(session.get('user_id', 'admin')),
+                    'created_at': time.time()
+                })
+        except Exception as _e:
+            logger.error(f"خطأ في تسجيل تغيير الحد: {_e}")
+        return jsonify({'status': 'success', 'limit': result})
+    except Exception as e:
+        logger.error(f"Error setting link limit: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
 @admin_bp.route('/api/admin/toggle_wholesaler', methods=['POST'])
 def api_toggle_wholesaler():
     """تفعيل/إلغاء صفة التاجر لمستخدم"""
@@ -2101,6 +2135,7 @@ def api_get_customer_details():
             'phone_verified': user_data.get('phone_verified', False),
             'verified_phone': user_data.get('verified_phone') or user_data.get('phone', ''),
             'is_wholesaler': user_data.get('is_wholesaler', False),
+            'link_limit': user_data.get('link_limit') or '',
             'orders': orders,
             'balance_logs': balance_logs
         }

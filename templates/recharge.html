@@ -291,7 +291,7 @@
                     <button type="button" class="amount-btn" data-amount="100">100 ريال</button>
                     <button type="button" class="amount-btn" data-amount="500">500 ريال</button>
                 </div>
-                <input type="number" id="customAmount" class="custom-amount" placeholder="أو أدخل مبلغاً آخر" min="10" max="500">
+                <input type="number" id="customAmount" class="custom-amount" placeholder="أو أدخل مبلغاً آخر" min="25" max="500">
             </div>
             
             <input type="hidden" id="selectedAmount" value="">
@@ -381,8 +381,8 @@
                           document.getElementById('selectedAmount').value;
             
             // MAX_CHARGE_500
-            if (!amount || amount < 10 || amount > 500) {
-                alert('المبلغ يجب أن يكون بين 10 و 500 ريال');
+            if (!amount || amount < 25 || amount > 500) {
+                alert('المبلغ يجب أن يكون بين 25 و 500 ريال');
                 return;
             }
             
@@ -413,8 +413,8 @@
                           document.getElementById('selectedAmount').value;
             
             // MAX_LINK_500
-            if (!amount || amount < 10 || amount > 500) {
-                alert('مبلغ رابط الدفع يجب أن يكون بين 10 و 500 ريال');
+            if (!amount || amount < 25 || amount > 500) {
+                alert('مبلغ رابط الدفع يجب أن يكون بين 25 و 500 ريال');
                 return;
             }
             
