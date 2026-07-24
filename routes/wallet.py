@@ -173,8 +173,8 @@ def wallet_pay():
         if not phone or len(phone) < 10:
             return jsonify({'success': False, 'message': 'رقم جوال غير صحيح'})
         
-        if amount < 10 or amount > 5000:
-            return jsonify({'success': False, 'message': 'المبلغ يجب أن يكون بين 10 و 5000 ريال'})
+        if amount < 10 or amount > 500:  # MAX_CHARGE_500
+            return jsonify({'success': False, 'message': 'المبلغ يجب أن يكون بين 10 و 500 ريال'})
         
         if not EDFAPAY_MERCHANT_ID or not EDFAPAY_PASSWORD:
             return jsonify({'success': False, 'message': 'بوابة الدفع غير مفعلة'})

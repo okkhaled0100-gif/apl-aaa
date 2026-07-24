@@ -290,9 +290,8 @@
                     <button type="button" class="amount-btn" data-amount="50">50 ريال</button>
                     <button type="button" class="amount-btn" data-amount="100">100 ريال</button>
                     <button type="button" class="amount-btn" data-amount="500">500 ريال</button>
-                    <button type="button" class="amount-btn" data-amount="1000">1000 ريال</button>
                 </div>
-                <input type="number" id="customAmount" class="custom-amount" placeholder="أو أدخل مبلغاً آخر" min="10" max="50000">
+                <input type="number" id="customAmount" class="custom-amount" placeholder="أو أدخل مبلغاً آخر" min="10" max="500">
             </div>
             
             <input type="hidden" id="selectedAmount" value="">
@@ -381,8 +380,9 @@
             const amount = document.getElementById('customAmount').value || 
                           document.getElementById('selectedAmount').value;
             
-            if (!amount || amount < 10) {
-                alert('الرجاء إدخال مبلغ صحيح (10 ريال على الأقل)');
+            // MAX_CHARGE_500
+            if (!amount || amount < 10 || amount > 500) {
+                alert('المبلغ يجب أن يكون بين 10 و 500 ريال');
                 return;
             }
             
