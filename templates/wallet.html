@@ -447,11 +447,11 @@
                     <div style="margin-bottom: 20px;">
                         <label class="form-label"> المبلغ المراد إرساله</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" id="linkAmount" placeholder="100" min="10" max="5000" required
+                            <!-- MAX_LINK_500 --><input type="number" id="linkAmount" placeholder="100" min="10" max="500" required
                                    class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
                             <span style="color: #b2bec3; font-size: 16px;">ريال</span>
                         </div>
-                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 5000 ريال</p>
+                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 500 ريال</p>
                     </div>
                     <div class="amount-buttons">
                         <button type="button" class="amount-btn" onclick="setLinkAmount(25)">25</button>
@@ -633,8 +633,8 @@
         const btn = document.getElementById('linkBtn');
         const btnText = document.getElementById('linkBtnText');
         
-        if(!amount || amount < 10 || amount > 5000) {
-            showToast(' المبلغ يجب أن يكون بين 10 و 5000 ريال', 'error');
+        if(!amount || amount < 10 || amount > 500) {
+            showToast(' المبلغ يجب أن يكون بين 10 و 500 ريال', 'error');
             return;
         }
         

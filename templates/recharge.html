@@ -412,8 +412,9 @@
             const amount = document.getElementById('customAmount').value || 
                           document.getElementById('selectedAmount').value;
             
-            if (!amount || amount < 10) {
-                alert('الرجاء إدخال مبلغ صحيح (10 ريال على الأقل)');
+            // MAX_LINK_500
+            if (!amount || amount < 10 || amount > 500) {
+                alert('مبلغ رابط الدفع يجب أن يكون بين 10 و 500 ريال');
                 return;
             }
             

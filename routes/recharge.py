@@ -137,8 +137,8 @@ def create_recharge_link():
         
         try:
             amount_int = int(float(amount))
-            if amount_int < 10 or amount_int > 50000:
-                return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 50000 ريال'})
+            if amount_int < 10 or amount_int > 500:  # MAX_LINK_500
+                return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 500 ريال'})
         except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         
