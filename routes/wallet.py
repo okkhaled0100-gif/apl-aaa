@@ -151,6 +151,7 @@ def wallet_page():
                           purchases_count=purchases_count,
                           email_verified=email_verified,
                           is_merchant=_wallet_is_merchant(user_id),
+                          contact_whatsapp=_wallet_whatsapp(),
                           links_create_enabled=get_toggle('payment_links_create', True))
 
 
@@ -427,3 +428,12 @@ def _wallet_is_merchant(user_id):
         return bool(is_wholesaler(user_id))
     except Exception:
         return False
+
+
+def _wallet_whatsapp():
+    """رابط الواتساب من الإعدادات"""
+    try:
+        from config import CONTACT_WHATSAPP
+        return CONTACT_WHATSAPP
+    except Exception:
+        return "https://wa.me/966504104956"

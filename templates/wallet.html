@@ -467,7 +467,8 @@
                     {% elif not is_merchant %}
                     <div style="background:rgba(108,92,231,0.12); border:1px solid rgba(108,92,231,0.4); border-radius:12px; padding:16px; text-align:center; margin-top:10px;">
                         <div style="color:#a29bfe; font-weight:bold; margin-bottom:8px;">🏪 هذه الميزة متاحة للتجار فقط</div>
-                        <div style="color:#b2bec3; font-size:13px;">إنشاء روابط الدفع متاح لحسابات التجار. للاستفسار تواصل مع الإدارة.</div>
+                        <div style="color:#b2bec3; font-size:13px; margin-bottom:12px;">إنشاء روابط الدفع متاح لحسابات التجار. للاستفسار تواصل معنا.</div>
+                        <a href="{{ contact_whatsapp }}" target="_blank" rel="noopener" style="display:inline-block; background:#25D366; color:#fff; padding:10px 24px; border-radius:10px; text-decoration:none; font-weight:bold;"><i class="fab fa-whatsapp"></i> تواصل عبر واتساب</a>
                     </div>
                     {% elif email_verified %}
                     <button type="submit" id="linkBtn" class="pay-btn">
