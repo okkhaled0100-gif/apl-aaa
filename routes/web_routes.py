@@ -316,6 +316,7 @@ def index():
     balance = 0.0
     phone_verified = False
     totp_enabled = False
+    is_merchant = False
     if user_id:
         try:
             balance = get_balance(user_id)
