@@ -1,0 +1,161 @@
+{% extends "admin_base.html" %}
+{% block title %}حالة النظام{% endblock %}
+{% block extra_css %}
+<style>
+    .status-hero {
+        border-radius: 16px; padding: 22px; margin-bottom: 25px;
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 15px;
+    }
+    .status-hero.ok { background: linear-gradient(135deg, #00b894, #00cec9); }
+    .status-hero.bad { background: linear-gradient(135deg, #d63031, #e17055); }
+    .status-hero h2 { margin: 0; font-size: 20px; color: #fff; }
+    .status-hero .sub { color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 4px; }
+    .status-hero .refresh-btn {
+        background: rgba(255,255,255,0.2); border: none; color: #fff;
+        padding: 10px 20px; border-radius: 10px; cursor: pointer;
+        font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 14px;
+    }
+    .section-title { font-size: 16px; font-weight: 700; margin: 25px 0 15px; color: #fff; }
+    .status-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+    }
+    .sys-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+        padding: 18px; text-align: center;
+    }
+    .sys-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-bottom: 10px; }
+    .sys-dot.on { background: #00b894; box-shadow: 0 0 10px rgba(0,184,148,0.6); }
+    .sys-dot.off { background: #d63031; box-shadow: 0 0 10px rgba(214,48,49,0.6); }
+    .sys-card .sys-name { font-size: 14px; color: #fff; margin-bottom: 4px; }
+    .sys-card .sys-state { font-size: 12px; }
+    .sys-state.on { color: #00b894; }
+    .sys-state.off { color: #ff6b6b; }
+    .toggle-row {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+        padding: 16px 18px; margin-bottom: 10px;
+        display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .toggle-row .t-name { font-size: 15px; color: #fff; }
+    .toggle-row .t-state { font-size: 12px; margin-top: 3px; }
+    .toggle-row .t-state.on { color: #00b894; }
+    .toggle-row .t-state.off { color: #ff6b6b; }
+    .switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background: rgba(255,255,255,0.2); border-radius: 28px; transition: 0.3s;
+    }
+    .slider:before {
+        content: ''; position: absolute; height: 20px; width: 20px;
+        right: 4px; bottom: 4px; background: #fff; border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .slider { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+    input:checked + .slider:before { transform: translateX(-24px); }
+    .num-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid rgba(108,92,231,0.25); border-radius: 14px;
+        padding: 20px; text-align: center;
+    }
+    .num-card .num-val { font-size: 28px; font-weight: 800; color: #a29bfe; }
+    .num-card .num-label { font-size: 13px; color: var(--muted, #8a8a9e); margin-top: 4px; }
+    .loading-box { text-align: center; padding: 50px; color: #8a8a9e; }
+</style>
+{% endblock %}
+{% block content %}
+<div id="statusContent">
+    <div class="loading-box">جارِ فحص حالة النظام...</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function loadStatus() {
+    const box = document.getElementById('statusContent');
+    try {
+        const res = await fetch('/api/admin/system_status');
+        const data = await res.json();
+        if (data.status !== 'success') {
+            box.innerHTML = '<div class="loading-box">تعذّر جلب الحالة</div>';
+            return;
+        }
+        render(data);
+    } catch (e) {
+        box.innerHTML = '<div class="loading-box">خطأ في الاتصال</div>';
+    }
+}
+
+function render(data) {
+    const box = document.getElementById('statusContent');
+    const heroClass = data.all_ok ? 'ok' : 'bad';
+    const heroText = data.all_ok ? '✅ جميع الأنظمة تعمل بشكل طبيعي' : '⚠️ يوجد نظام متوقف — راجع التفاصيل';
+
+    let sysCards = data.systems.map(s => `
+        <div class="sys-card">
+            <span class="sys-dot ${s.ok ? 'on' : 'off'}"></span>
+            <div class="sys-name">${s.name}</div>
+            <div class="sys-state ${s.ok ? 'on' : 'off'}">${s.ok ? 'يعمل' : 'متوقف'}</div>
+        </div>`).join('');
+
+    let toggleRows = data.toggles.map(t => `
+        <div class="toggle-row">
+            <div>
+                <div class="t-name">${t.name}</div>
+                <div class="t-state ${t.enabled ? 'on' : 'off'}">${t.enabled ? 'مُفعّل' : 'متوقف'}</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="flipToggle('${t.key}', this)">
+                <span class="slider"></span>
+            </label>
+        </div>`).join('');
+
+    const c = data.counts;
+    let numCards = `
+        <div class="num-card"><div class="num-val">${c.users}</div><div class="num-label">العملاء</div></div>
+        <div class="num-card"><div class="num-val">${c.merchants}</div><div class="num-label">التجار</div></div>
+        <div class="num-card"><div class="num-val">${c.orders}</div><div class="num-label">الطلبات</div></div>
+        <div class="num-card"><div class="num-val">${c.categories}</div><div class="num-label">الأقسام</div></div>`;
+
+    box.innerHTML = `
+        <div class="status-hero ${heroClass}">
+            <div><h2>${heroText}</h2><div class="sub">آخر فحص: ${new Date().toLocaleTimeString('ar-SA')}</div></div>
+            <button class="refresh-btn" onclick="loadStatus()">🔄 تحديث</button>
+        </div>
+        <div class="section-title">🖥️ الأنظمة</div>
+        <div class="status-grid">${sysCards}</div>
+        <div class="section-title">🔀 المفاتيح</div>
+        <div>${toggleRows}</div>
+        <div class="section-title">📊 الأرقام</div>
+        <div class="status-grid">${numCards}</div>`;
+}
+
+async function flipToggle(key, el) {
+    const newVal = el.checked;
+    try {
+        const res = await fetch('/api/admin/set_toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: key, value: newVal })
+        });
+        const data = await res.json();
+        if (data.status === 'success' || data.success) {
+            showToast(newVal ? 'تم التفعيل' : 'تم الإيقاف', 'success');
+            const row = el.closest('.toggle-row');
+            const state = row.querySelector('.t-state');
+            state.textContent = newVal ? 'مُفعّل' : 'متوقف';
+            state.className = 't-state ' + (newVal ? 'on' : 'off');
+        } else {
+            showToast('فشل التغيير', 'error');
+            el.checked = !newVal;
+        }
+    } catch (e) {
+        showToast('خطأ في الاتصال', 'error');
+        el.checked = !newVal;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadStatus);
+</script>
+{% endblock %}

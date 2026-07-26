@@ -482,6 +482,80 @@ def admin_invoices():
         return redirect('/dashboard')
     return render_template('admin_invoices_new.html', active_page='invoices')
 
+@admin_bp.route('/admin/status')
+def admin_status_page():
+    """صفحة حالة النظام الشاملة"""
+    if not session.get('is_admin'):
+        return redirect('/admin/login')
+    return render_template('admin_status.html', active_page='status')
+
+
+@admin_bp.route('/api/admin/system_status')
+def api_system_status():
+    """حالة الأنظمة والمفاتيح والأرقام"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+
+    systems = []
+    db_ok = False
+    try:
+        if db:
+            list(db.collection('users').limit(1).stream())
+            db_ok = True
+    except Exception:
+        db_ok = False
+    systems.append({'key': 'database', 'name': 'قاعدة البيانات', 'ok': db_ok})
+    bot_ok = False
+    try:
+        from extensions import bot as _bot
+        bot_ok = _bot is not None
+    except Exception:
+        bot_ok = False
+    systems.append({'key': 'bot', 'name': 'بوت تيليجرام', 'ok': bot_ok})
+    pay_ok = False
+    try:
+        from config import EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD
+        pay_ok = bool(EDFAPAY_MERCHANT_ID and EDFAPAY_PASSWORD)
+    except Exception:
+        pay_ok = False
+    systems.append({'key': 'payment', 'name': 'بوابة الدفع', 'ok': pay_ok})
+
+    toggle_defs = [
+        ('rewards_system', 'نظام المكافآت', True),
+        ('payment_links_create', 'إنشاء روابط الدفع', True),
+        ('payment_links_pay', 'دفع الروابط', True),
+        ('instant_withdraw', 'السحب الفوري', True),
+        ('new_registration', 'التسجيل الجديد', True),
+    ]
+    toggles = []
+    for key, name, default in toggle_defs:
+        try:
+            val = bool(get_toggle(key, default))
+        except Exception:
+            val = default
+        toggles.append({'key': key, 'name': name, 'enabled': val})
+
+    counts = {'users': 0, 'merchants': 0, 'orders': 0, 'categories': 0}
+    try:
+        if db:
+            users = list(db.collection('users').stream())
+            counts['users'] = len(users)
+            counts['merchants'] = sum(1 for u in users if u.to_dict().get('is_wholesaler', False))
+            counts['orders'] = len(list(db.collection('orders').stream()))
+            counts['categories'] = len(list(db.collection('categories').stream()))
+    except Exception as e:
+        logger.error(f"status counts error: {e}")
+
+    all_ok = all(s['ok'] for s in systems)
+    return jsonify({
+        'status': 'success',
+        'all_ok': all_ok,
+        'systems': systems,
+        'toggles': toggles,
+        'counts': counts
+    })
+
+
 @admin_bp.route('/admin/toggles')
 def admin_toggles():
     """صفحة مفاتيح التحكم"""
