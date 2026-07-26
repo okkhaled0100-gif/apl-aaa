@@ -99,18 +99,6 @@ function render(data) {
             <div class="sys-state ${s.ok ? 'on' : 'off'}">${s.ok ? 'يعمل' : 'متوقف'}</div>
         </div>`).join('');
 
-    let toggleRows = data.toggles.map(t => `
-        <div class="toggle-row">
-            <div>
-                <div class="t-name">${t.name}</div>
-                <div class="t-state ${t.enabled ? 'on' : 'off'}">${t.enabled ? 'مُفعّل' : 'متوقف'}</div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="flipToggle('${t.key}', this)">
-                <span class="slider"></span>
-            </label>
-        </div>`).join('');
-
     const c = data.counts;
     let numCards = `
         <div class="num-card"><div class="num-val">${c.users}</div><div class="num-label">العملاء</div></div>
@@ -125,35 +113,8 @@ function render(data) {
         </div>
         <div class="section-title">🖥️ الأنظمة</div>
         <div class="status-grid">${sysCards}</div>
-        <div class="section-title">🔀 المفاتيح</div>
-        <div>${toggleRows}</div>
         <div class="section-title">📊 الأرقام</div>
         <div class="status-grid">${numCards}</div>`;
-}
-
-async function flipToggle(key, el) {
-    const newVal = el.checked;
-    try {
-        const res = await fetch('/api/admin/set_toggle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: key, value: newVal })
-        });
-        const data = await res.json();
-        if (data.status === 'success' || data.success) {
-            showToast(newVal ? 'تم التفعيل' : 'تم الإيقاف', 'success');
-            const row = el.closest('.toggle-row');
-            const state = row.querySelector('.t-state');
-            state.textContent = newVal ? 'مُفعّل' : 'متوقف';
-            state.className = 't-state ' + (newVal ? 'on' : 'off');
-        } else {
-            showToast('فشل التغيير', 'error');
-            el.checked = !newVal;
-        }
-    } catch (e) {
-        showToast('خطأ في الاتصال', 'error');
-        el.checked = !newVal;
-    }
 }
 
 document.addEventListener('DOMContentLoaded', loadStatus);
