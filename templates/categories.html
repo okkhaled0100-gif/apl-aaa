@@ -177,6 +177,18 @@
             border-radius: 50%;
             object-fit: cover;
         }
+        .merchant-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #f1c40f;
+            background: rgba(241, 196, 15, 0.12);
+            border: 1px solid rgba(241, 196, 15, 0.4);
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
         .dropdown-user-text h3 {
             margin: 0;
             font-size: 16px;
@@ -653,7 +665,7 @@
                     {% endif %}
                 </div>
                 <div class="dropdown-user-text">
-                    <h3>{{ user_name or 'مستخدم' }}</h3>
+                    <h3>{{ user_name or 'مستخدم' }}{% if is_merchant %} <span class="merchant-badge">🏪 تاجر</span>{% endif %}</h3>
                     <div class="copy-id-badge" onclick="copyUserId('{{ current_user_id }}')">
                         <span id="idText">ID: {{ current_user_id }}</span>
                         <i class="fas fa-copy"></i>

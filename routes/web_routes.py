@@ -320,6 +320,10 @@ def index():
             user_data = get_user_data(user_id)
             phone_verified = user_data.get('phone_verified', False)
             totp_enabled = user_data.get('totp_enabled', False)
+            try:
+                is_merchant = bool(_is_wholesaler(user_id))
+            except Exception:
+                is_merchant = False
         except:
             balance = 0.0
     
@@ -356,6 +360,7 @@ def index():
                          is_logged_in=is_logged_in,
                          phone_verified=phone_verified,
                          totp_enabled=totp_enabled,
+                         is_merchant=is_merchant,
                          cart_count=cart_count,
                          bot_username=BOT_USERNAME,
                          contact_bot_url=CONTACT_BOT_URL,
