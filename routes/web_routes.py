@@ -33,7 +33,9 @@ def apply_wholesale_prices(products, user_id):
             try:
                 wp = float(p.get('wholesale_price', 0) or 0)
                 if wp > 0:
+                    p['wholesale_original'] = float(p.get('price', 0))
                     p['price'] = wp
+                    p['is_wholesale_applied'] = True
             except Exception:
                 pass
     except Exception:

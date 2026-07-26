@@ -67,6 +67,13 @@
     .product-category-tag:hover {
         background: rgba(108, 92, 231, 0.4);
     }
+    .old-price {
+        font-size: 0.5em;
+        color: #ff6b6b;
+        text-decoration: line-through;
+        opacity: 0.85;
+        font-weight: 600;
+    }
     .product-price {
         font-size: 32px;
         font-weight: 800;
@@ -493,7 +500,7 @@
                 {{ category.name }}
             </a>
             <div class="product-price">
-                {{ product.price|round(2) }} <span>ر.س</span>
+                {% if product.is_wholesale_applied %}<span class="old-price">{{ product.wholesale_original|round(2) }} ر.س</span> {% endif %}{{ product.price|round(2) }} <span>ر.س</span>
             </div>
         </div>
         

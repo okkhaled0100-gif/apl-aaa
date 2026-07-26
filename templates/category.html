@@ -90,6 +90,13 @@
     .product-name-link:hover .product-name {
         color: var(--primary);
     }
+    .old-price {
+        font-size: 0.62em;
+        color: #ff6b6b;
+        text-decoration: line-through;
+        opacity: 0.85;
+        font-weight: 600;
+    }
     .product-price {
         font-size: 16px;
         color: var(--primary);
@@ -296,7 +303,7 @@
                         {% else %}
                         <span class="product-badge instant"> تسليم فوري</span>
                         {% endif %}
-                        <div class="product-price">{{ item.price|round(2) }} ر.س</div>
+                        <div class="product-price">{% if item.is_wholesale_applied %}<span class="old-price">{{ item.wholesale_original|round(2) }} ر.س</span> {% endif %}{{ item.price|round(2) }} ر.س</div>
                     </div>
                     {% if item.delivery_type == 'manual' %}
                     <button class="product-btn manual-btn" 
