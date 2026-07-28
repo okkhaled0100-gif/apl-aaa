@@ -151,6 +151,10 @@ def wallet_page():
             for _d in _lref.stream():
                 _x = _d.to_dict()
                 _st = _x.get('status','pending')
+                # مطابقة الحالة مع الواقع: لو pending وعدّى وقت الانتهاء => منتهي
+                _exp_at = _x.get('expires_at', 0) or 0
+                if _st == 'pending' and _exp_at and time.time() > _exp_at:
+                    _st = 'expired'
                 my_links.append({
                     'invoice_id': _x.get('invoice_id', _d.id),
                     'amount': _x.get('amount',0),
