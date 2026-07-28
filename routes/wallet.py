@@ -162,6 +162,7 @@ def wallet_page():
                     'status_ar': _STATUS_AR.get(_st,_st),
                     'product_name': _x.get('product_name','') or 'رابط شحن',
                     'customer_phone': _x.get('customer_phone','') or '',
+                    'customer_name': _x.get('customer_name','') or '',
                     'created_at': _x.get('created_at',0),
                 })
             my_links.sort(key=lambda x: x.get('created_at',0), reverse=True)

@@ -515,7 +515,7 @@
                         {% else %}
                         <span style="background:rgba(241,196,15,0.15);color:#f1c40f;padding:3px 12px;border-radius:20px;">⏳ {{ lk.status_ar }}</span>
                         {% endif %}
-                        <button onclick="copyMyLink('{{ lk.invoice_id }}')" style="background:var(--primary);color:#fff;border:none;padding:5px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">📋 نسخ</button>
+                        <button onclick="showLinkDetails({{ {'id': lk.invoice_id, 'name': lk.customer_name, 'phone': lk.customer_phone, 'status': lk.status, 'amount': lk.amount}|tojson|forceescape }})" style="background:var(--primary);color:#fff;border:none;padding:5px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">📄 تفاصيل</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -670,6 +670,56 @@
     }
     
     function copyMyLink(invoiceId) {
+        var url = window.location.origin + '/invoice/' + invoiceId;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط', 'success'); })
+                .catch(function(){ prompt('انسخ الرابط:', url); });
+        } else {
+            prompt('انسخ الرابط:', url);
+        }
+    }
+
+    function showLinkDetails(d) {
+        var url = window.location.origin + '/invoice/' + d.id;
+        var isPaid = (d.status === 'paid');
+        var ov = document.getElementById('linkDetailsOverlay');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'linkDetailsOverlay';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(10,10,20,0.75);display:flex;align-items:center;justify-content:center;padding:20px;';
+            ov.onclick = function(e){ if(e.target===ov) ov.style.display='none'; };
+            document.body.appendChild(ov);
+        }
+        var customerBlock = '';
+        if (isPaid) {
+            var nm = d.name ? d.name : 'غير مذكور';
+            var ph = d.phone ? d.phone : 'غير محدد';
+            customerBlock =
+                '<div style="background:rgba(0,184,148,0.10);border:1px solid rgba(0,184,148,0.35);border-radius:12px;padding:14px;text-align:right;margin-bottom:14px;">' +
+                  '<div style="color:#9990b8;font-size:12px;margin-bottom:4px;">اسم العميل</div>' +
+                  '<div style="color:#fff;font-weight:bold;margin-bottom:10px;">' + nm + '</div>' +
+                  '<div style="color:#9990b8;font-size:12px;margin-bottom:4px;">رقم العميل</div>' +
+                  '<div style="color:#00e0b0;font-weight:bold;font-size:17px;direction:ltr;text-align:right;">' + ph + '</div>' +
+                  '<div style="color:#f1c40f;font-size:12.5px;margin-top:10px;line-height:1.6;">⚠️ الرجاء إتمام الطلب على رقم العميل هذا</div>' +
+                '</div>';
+        } else {
+            customerBlock =
+                '<div style="background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.2);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;color:#9990b8;font-size:13.5px;">لم يدفع أحد بعد</div>';
+        }
+        ov.innerHTML =
+            '<div style="width:100%;max-width:340px;background:#1a1a2e;border:1px solid rgba(108,92,231,0.4);border-radius:20px;padding:22px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+                '<span style="color:#fff;font-size:17px;font-weight:bold;">تفاصيل الرابط</span>' +
+                '<span style="color:var(--green);font-weight:bold;">' + d.amount + ' ر.س</span>' +
+              '</div>' +
+              customerBlock +
+              '<button onclick="copyLinkUrl(\'' + d.id + '\')" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:bold;font-size:14px;font-family:inherit;cursor:pointer;margin-bottom:8px;">📋 نسخ الرابط</button>' +
+              '<button onclick="document.getElementById(\'linkDetailsOverlay\').style.display=\'none\'" style="width:100%;padding:12px;border:1px solid rgba(255,255,255,0.18);border-radius:12px;background:rgba(255,255,255,0.06);color:#fff;font-weight:bold;font-size:14px;font-family:inherit;cursor:pointer;">إغلاق</button>' +
+            '</div>';
+        ov.style.display = 'flex';
+    }
+
+    function copyLinkUrl(invoiceId) {
         var url = window.location.origin + '/invoice/' + invoiceId;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط', 'success'); })
