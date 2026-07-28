@@ -389,6 +389,7 @@
             <div class="tab-buttons">
                 <button type="button" class="tab-btn active" onclick="switchTab('direct')">💰 شحن مباشر</button>
                 <button type="button" class="tab-btn" onclick="switchTab('link')">🔗 إنشاء رابط</button>
+                {% if is_merchant %}<button type="button" class="tab-btn" data-tab="mylinks" onclick="switchTab('mylinks')">📋 روابطي</button>{% endif %}
             </div>
             
             <!-- التاب الأول: الشحن المباشر -->
@@ -496,6 +497,35 @@
                 <p style="text-align: center; color: #999; font-size: 13px; margin-top: 15px;">
                     💡 أنشئ رابطاً وشاركه مع أصدقائك. يصلح الرابط لمدة ساعة واحدة فقط
                 </p>
+            </div>
+            <!-- التاب الثالث: روابطي (للتاجر) -->
+            <div id="mylinks-tab" class="tab-content">
+                {% if my_links and my_links|length > 0 %}
+                {% for lk in my_links %}
+                <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:14px;padding:14px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="color:#fff;font-weight:bold;">{{ lk.product_name }}</span>
+                        <span style="color:var(--green);font-weight:bold;">{{ lk.amount }} ر.س</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;">
+                        {% if lk.status == 'paid' %}
+                        <span style="background:rgba(0,184,148,0.18);color:#00e0b0;padding:3px 12px;border-radius:20px;">✅ {{ lk.status_ar }}</span>
+                        {% elif lk.status == 'expired' %}
+                        <span style="background:rgba(231,76,60,0.15);color:#e74c3c;padding:3px 12px;border-radius:20px;">⌛ {{ lk.status_ar }}</span>
+                        {% else %}
+                        <span style="background:rgba(241,196,15,0.15);color:#f1c40f;padding:3px 12px;border-radius:20px;">⏳ {{ lk.status_ar }}</span>
+                        {% endif %}
+                        <button onclick="copyMyLink('{{ lk.invoice_id }}')" style="background:var(--primary);color:#fff;border:none;padding:5px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">📋 نسخ</button>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                    <div style="font-size:44px;margin-bottom:12px;">🔗</div>
+                    <div style="font-size:15px;">لا توجد روابط بعد</div>
+                    <div style="font-size:13px;margin-top:6px;">أنشئ رابطك الأول من تبويب «إنشاء رابط»</div>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -620,6 +650,7 @@
         // إخفاء كل التاب كونتينت
         document.getElementById('direct-tab').classList.remove('active');
         document.getElementById('link-tab').classList.remove('active');
+        var _ml=document.getElementById('mylinks-tab'); if(_ml){_ml.classList.remove('active');}
         
         // إزالة الـ active من جميع البتونز
         const tabs = document.querySelectorAll('.tab-btn');
@@ -632,9 +663,22 @@
         } else if(tabName === 'link') {
             document.getElementById('link-tab').classList.add('active');
             tabs[1].classList.add('active');
+        } else if(tabName === 'mylinks') {
+            document.getElementById('mylinks-tab').classList.add('active');
+            var _b=document.querySelector('.tab-btn[data-tab="mylinks"]'); if(_b){_b.classList.add('active');}
         }
     }
     
+    function copyMyLink(invoiceId) {
+        var url = window.location.origin + '/invoice/' + invoiceId;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط', 'success'); })
+                .catch(function(){ prompt('انسخ الرابط:', url); });
+        } else {
+            prompt('انسخ الرابط:', url);
+        }
+    }
+
     function setLinkAmount(amount) {
         document.getElementById('linkAmount').value = amount;
     }

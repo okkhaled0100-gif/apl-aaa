@@ -142,6 +142,28 @@ def wallet_page():
     except Exception as e:
         print(f"❌ خطأ في جلب المعاملات: {e}")
     
+    # my_links: روابط الدفع الخاصة بالتاجر (تعريف آمن أولاً)
+    my_links = []
+    try:
+        if _wallet_is_merchant(user_id):
+            _STATUS_AR = {'pending':'بانتظار الدفع','paid':'مدفوع','expired':'منتهي','declined':'مرفوض'}
+            _lref = query_where(db.collection('merchant_invoices'), 'created_by', '==', user_id)
+            for _d in _lref.stream():
+                _x = _d.to_dict()
+                _st = _x.get('status','pending')
+                my_links.append({
+                    'invoice_id': _x.get('invoice_id', _d.id),
+                    'amount': _x.get('amount',0),
+                    'status': _st,
+                    'status_ar': _STATUS_AR.get(_st,_st),
+                    'product_name': _x.get('product_name','') or 'رابط شحن',
+                    'customer_phone': _x.get('customer_phone','') or '',
+                    'created_at': _x.get('created_at',0),
+                })
+            my_links.sort(key=lambda x: x.get('created_at',0), reverse=True)
+    except Exception as _e:
+        print(f'خطأ في جلب روابط التاجر: {_e}')
+
     return render_template('wallet.html', 
                           user_id=user_id,
                           balance=balance,
@@ -153,6 +175,7 @@ def wallet_page():
                           is_merchant=_wallet_is_merchant(user_id),
                           contact_whatsapp=_wallet_whatsapp(),
                           link_limit=_wallet_link_limit(user_id),
+                          my_links=my_links,
                           links_create_enabled=get_toggle('payment_links_create', True))
 
 
