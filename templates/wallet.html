@@ -547,7 +547,7 @@
 <script>
     const userId = '{{ user_id }}';
     function calcBonus(amount) {
-        var tiers = [[200,20],[150,15],[100,10],[50,5]];
+        var tiers = [[100,10],[50,5]];
         for (var i = 0; i < tiers.length; i++) {
             if (amount >= tiers[i][0]) return Math.min(tiers[i][1], 20);
         }
@@ -555,7 +555,8 @@
     }
     function updateBonusDisplay() {
         var amount = parseFloat(document.getElementById('chargeAmount').value) || 0;
-        var bonus = calcBonus(amount);
+        var curBal = parseFloat((document.getElementById('currentBalance').textContent || '0').replace(/[^0-9.]/g,'')) || 0;
+        var bonus = (curBal < 99) ? calcBonus(amount) : 0;
         var box = document.getElementById('bonusDisplay');
         if (bonus > 0) {
             document.getElementById('bonusAmount').textContent = bonus;

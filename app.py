@@ -1591,9 +1591,17 @@ _محاولة اختراق واضحة!_
 
                 # 🎁 مكافأة الشحن الذاتي فقط (ليس روابط الدفع/فواتير التجار)
                 if not is_merchant_invoice:
-                    _bonus = calc_bonus(pay_amount)
-                    if _bonus > 0:
-                        add_bonus(user_id, _bonus)
+                    # balance_before_charge: مكافأة فقط لو الرصيد (حقيقي+مكافأة) قبل الشحن أقل من 99
+                    try:
+                        _bal_before = float(get_balance(user_id) or 0) - float(pay_amount)
+                        _bonus_before = float(get_bonus(user_id) or 0)
+                        _total_before = _bal_before + _bonus_before
+                    except Exception:
+                        _total_before = 0
+                    if _total_before < 99:
+                        _bonus = calc_bonus(pay_amount)
+                        if _bonus > 0:
+                            add_bonus(user_id, _bonus)
                 
                 # ✅ إشعار المالك بالشحن
                 notify_new_charge(user_id, pay_amount, method='edfapay')

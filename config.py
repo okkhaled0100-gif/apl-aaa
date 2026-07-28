@@ -67,5 +67,5 @@ AUTHENTICA_TEMPLATE_ID = os.environ.get("AUTHENTICA_TEMPLATE_ID", "1")
 
 
 # ===== نظام مكافآت الشحن =====
-BONUS_TIERS = os.environ.get("BONUS_TIERS", "50:5,100:10,150:15,200:20")
+BONUS_TIERS = os.environ.get("BONUS_TIERS", "50:5,100:10")
 BONUS_MAX = int(os.environ.get("BONUS_MAX", "20"))
