@@ -527,6 +527,11 @@ def api_system_status():
         ('instant_withdraw', 'السحب الفوري', True),
         ('new_registration', 'التسجيل الجديد', True),
     ]
+    # PATCH: import get_toggle in system_status
+    try:
+        from firebase_utils import get_toggle
+    except Exception:
+        get_toggle = lambda key, default=True: default
     toggles = []
     for key, name, default in toggle_defs:
         try:
