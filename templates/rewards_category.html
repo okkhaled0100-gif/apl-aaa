@@ -6,6 +6,15 @@
     <title>مكافأة القسم</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .cc-overlay{position:fixed;inset:0;z-index:2000;background:rgba(10,10,20,0.72);display:none;align-items:center;justify-content:center;padding:20px}
+        .cc-overlay.show{display:flex}
+        .cc-box{width:100%;max-width:320px;background:#1a1a2e;border:1px solid rgba(108,92,231,0.35);border-radius:20px;padding:26px 22px;text-align:center}
+        .cc-icon{width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:linear-gradient(135deg,#00b894,#00cec9);display:flex;align-items:center;justify-content:center;font-size:30px}
+        .cc-box h3{color:#fff;font-size:19px;font-weight:700;margin:0 0 8px}
+        .cc-box p{color:#a29bfe;font-size:14px;line-height:1.7;margin:0 0 22px}
+        .cc-actions{display:flex;gap:10px}
+        .cc-yes{flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
+        .cc-no{flex:1;padding:14px;border:1px solid rgba(255,255,255,0.18);border-radius:12px;background:rgba(255,255,255,0.06);color:#fff;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', 'Segoe UI', sans-serif; }
         body {
             background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
@@ -164,7 +173,12 @@
         }
 
         async function claimGift() {
-            if (!confirm('هل تريد استخدام هديتك الآن؟')) return;
+            ccOpen();
+        }
+        function ccOpen(){document.getElementById("ccOverlay").classList.add("show")}
+        function ccClose(){document.getElementById("ccOverlay").classList.remove("show")}
+        function ccConfirm(){ccClose();doClaimConfirmed()}
+        async function doClaimConfirmed() {
             const btn = document.querySelector('.claim-btn');
             if (btn) { btn.disabled = true; btn.textContent = 'جارِ الاستلام...'; }
             try {
@@ -250,5 +264,16 @@
 
         document.addEventListener('DOMContentLoaded', loadCategory);
     </script>
+    <div class="cc-overlay" id="ccOverlay">
+        <div class="cc-box">
+            <div class="cc-icon">🎁</div>
+            <h3>استخدام الهدية</h3>
+            <p>هل تريد استخدام هديتك الآن؟ لا يمكن التراجع بعد التأكيد.</p>
+            <div class="cc-actions">
+                <button class="cc-yes" onclick="ccConfirm()">نعم، استخدمها</button>
+                <button class="cc-no" onclick="ccClose()">إلغاء</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
