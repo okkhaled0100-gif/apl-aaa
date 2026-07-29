@@ -1035,6 +1035,13 @@
                         </p>
                     </div>
                     
+                    <!-- تنبيه حذف المكافأة (يظهر فقط لو فيه مكافأة) -->
+                    {% if balance_bonus and balance_bonus > 0 %}
+                    <div id="bonusWarnBox" style="display:none; margin:14px 0; padding:12px 14px; background:rgba(241,196,15,0.10); border:1px solid rgba(241,196,15,0.4); border-radius:12px; color:#f1c40f; font-size:13px; line-height:1.7;">
+                        ⚠️ لديك رصيد مكافأة قدره <strong>{{ "%.2f"|format(balance_bonus|float) }}</strong> ر.س. عند إتمام السحب سيتم حذف رصيد المكافأة بالكامل. (المكافأة مخصّصة للشراء داخل المتجر فقط)
+                    </div>
+                    {% endif %}
+                    
                     <!-- ملخص -->
                     <div class="withdraw-summary">
                         <div class="summary-row">
@@ -1136,6 +1143,9 @@
             document.getElementById('feePercent').textContent = currentFeePercent;
             document.getElementById('withdrawAmount').value = '';
             updateSummary();
+            
+            var _bw = document.getElementById('bonusWarnBox');
+            if (_bw) { _bw.style.display = 'block'; }
             
             document.getElementById('withdrawModal').classList.add('active');
         }
