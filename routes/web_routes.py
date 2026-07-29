@@ -478,6 +478,13 @@ def refund_policy():
                           title="سياسة الاسترجاع",
                           current_year=datetime.now().year)
 
+@web_bp.route('/rewards-policy')
+def rewards_policy():
+    """صفحة سياسة المكافآت"""
+    return render_template('pages/rewards_policy.html', 
+                          title="سياسة المكافآت",
+                          current_year=datetime.now().year)
+
 @web_bp.route('/contact-us')
 def contact_us():
     """صفحة اتصل بنا"""
