@@ -96,7 +96,7 @@
                 <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required pattern="[0-9]{6}">
                 <button type="submit" id="verifyBtn"> تأكيد الدخول</button>
             </form>
-            <button class="back-btn" onclick="goBack()"> رجوع</button>
+            <button class="back-btn" id="resendBtn" onclick="resendCode()" disabled>إعادة إرسال الكود</button>
             <div id="error2" class="error" style="display:none;"></div>
             <div id="success2" class="success" style="display:none;"></div>
         </div>
@@ -180,22 +180,31 @@
                 document.getElementById('countdown').textContent = secondsLeft;
                 if(secondsLeft <= 0) {
                     clearInterval(countdownInterval);
-                    document.getElementById('error2').textContent = ' انتهت صلاحية الكود! أعد المحاولة';
+                    document.getElementById('error2').textContent = ' انتهت صلاحية الكود! اضغط إعادة إرسال';
                     document.getElementById('error2').style.display = 'block';
                     document.getElementById('verifyBtn').disabled = true;
+                    var _rb = document.getElementById('resendBtn');
+                    if (_rb) _rb.disabled = false;
                 }
             }, 1000);
         }
-        function goBack() {
+        function resendCode() {
+            var rb = document.getElementById('resendBtn');
+            if (rb && rb.disabled) return;
             clearInterval(countdownInterval);
             document.getElementById('step2').classList.remove('active');
             document.getElementById('step1').classList.add('active');
-            document.getElementById('password').value = '';
-            document.getElementById('verifyCode').value = '';
-            document.getElementById('error1').style.display = 'none';
-            document.getElementById('error2').style.display = 'none';
-            document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').textContent = ' إرسال كود التحقق';
+            var vc = document.getElementById('verifyCode');
+            if (vc) vc.value = '';
+            var e1 = document.getElementById('error1');
+            if (e1) e1.style.display = 'none';
+            var e2 = document.getElementById('error2');
+            if (e2) e2.style.display = 'none';
+            var vb = document.getElementById('verifyBtn');
+            if (vb) vb.disabled = false;
+            var scb = document.getElementById('sendCodeBtn');
+            if (scb) { scb.disabled = false; scb.textContent = ' إرسال كود التحقق'; }
+            if (rb) rb.disabled = true;
         }
         document.getElementById('verifyCode').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');

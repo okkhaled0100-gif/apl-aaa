@@ -144,7 +144,7 @@ def login():
         code_time = user_data.get('code_time', 0)
         
         # التحقق من صلاحية الكود (ساعة واحدة)
-        if time.time() - code_time > 3600:
+        if time.time() - code_time > 180:
             record_failed_login()
             log_login_failed(user_id, reason='انتهت صلاحية الكود')
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
@@ -220,7 +220,7 @@ def verify_code_api():
     code_time = user_data.get('code_time', 0)
     
     # التحقق من الصلاحية
-    if time.time() - code_time > 3600:
+    if time.time() - code_time > 180:
         record_failed_login()
         return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
     
@@ -338,7 +338,7 @@ def send_email_otp(to_email, code):
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; display: inline-block;">
                         <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px;">{code}</span>
                     </div>
-                    <p style="color: #999; font-size: 14px; margin-top: 30px;">⏰ هذا الرمز صالح لمدة <strong>10 دقائق</strong> فقط</p>
+                    <p style="color: #999; font-size: 14px; margin-top: 30px;">⏰ هذا الرمز صالح لمدة <strong>3 دقائق</strong> فقط</p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                     <p style="color: #aaa; font-size: 12px;">⚠️ إذا لم تطلب هذا الرمز، تجاهل هذا الإيميل</p>
                 </div>
@@ -431,7 +431,7 @@ def send_code_email():
         else:
             # إذا فشل الإيميل، نحاول إرسال عبر Telegram
             try:
-                message_text = f"📧 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 10 دقائق"
+                message_text = f"📧 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 3 دقائق"
                 bot.send_message(int(user_id), message_text, parse_mode='HTML')
                 return jsonify({'success': True, 'message': '✅ تم إرسال الرمز عبر Telegram', 'email': email})
             except:
@@ -548,8 +548,8 @@ def register_verify():
     if not pending:
         return jsonify({'success': False, 'message': 'لم يتم طلب كود لهذا الرقم. أعد المحاولة'})
 
-    # التحقق من انتهاء الصلاحية (10 دقائق)
-    if time.time() - pending['time'] > 600:
+    # التحقق من انتهاء الصلاحية (3 دقائق)
+    if time.time() - pending['time'] > 180:
         _pending_registrations.pop(phone, None)
         return jsonify({'success': False, 'message': 'انتهت صلاحية الكود. اطلب كود جديد'})
 
@@ -641,9 +641,9 @@ def login_email():
         user_doc = results[0]
         user_data = user_doc.to_dict()
         
-        # التحقق من انتهاء صلاحية الكود (10 دقائق)
+        # التحقق من انتهاء صلاحية الكود (3 دقائق)
         code_time = user_data.get('code_time', 0)
-        if time.time() - code_time > 600:
+        if time.time() - code_time > 180:
             record_failed_login()
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود، اطلب كود جديد'})
         
@@ -747,7 +747,7 @@ def send_code_phone():
         telegram_linked = user_data.get('telegram_linked', False)
         user_email    = user_data.get('email')
         email_verified = user_data.get('email_verified', False)
-        otp_msg = f"📱 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 10 دقائق"
+        otp_msg = f"📱 كود التحقق للدخول:\n\n<code>{new_code}</code>\n\n⏰ صالح لمدة 3 دقائق"
 
         # ① الأولوية: تيليجرام مربوط → مجاني تماماً
         if telegram_id and telegram_linked:
@@ -850,9 +850,9 @@ def login_phone():
 
         user_data = user_doc.to_dict()
 
-        # التحقق من الصلاحية (10 دقائق)
+        # التحقق من الصلاحية (3 دقائق)
         code_time = user_data.get('code_time', 0)
-        if time.time() - code_time > 600:
+        if time.time() - code_time > 180:
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود، اطلب كود جديد'})
 
         # التحقق عبر Authentica API أولاً
