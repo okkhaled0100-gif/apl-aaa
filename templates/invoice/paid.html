@@ -7,9 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Tajawal', sans-serif; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -17,24 +17,133 @@
             padding: 20px;
         }
         .container {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            background: #1a1a2e;
+            border: 1px solid rgba(108,92,231,0.25);
             border-radius: 20px;
-            padding: 40px;
+            padding: 32px 24px;
             text-align: center;
             max-width: 400px;
-            border: 1px solid rgba(255,255,255,0.2);
+            width: 100%;
         }
-        .icon { font-size: 80px; margin-bottom: 20px; }
-        h1 { color: #00cec9; margin-bottom: 15px; font-size: 24px; }
-        p { color: #dfe6e9; line-height: 1.6; }
+        .icon { font-size: 64px; margin-bottom: 16px; }
+        h1 { color: #00e0b0; margin-bottom: 10px; font-size: 23px; }
+        .sub { color: #dfe6e9; line-height: 1.6; font-size: 14px; margin-bottom: 22px; }
+        .info-box {
+            background: rgba(255,255,255,0.04);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 22px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .info-row + .info-row { border-top: 1px solid rgba(255,255,255,0.06); }
+        .info-k { color: #9990b8; }
+        .info-v { color: #fff; font-weight: 700; }
+        .copy-btn {
+            background: rgba(108,92,231,0.2);
+            color: #a29bfe;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .id-val { color: #fff; font-weight: 700; direction: ltr; font-family: monospace; font-size: 13px; }
+        .btns { display: flex; flex-direction: column; gap: 10px; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-merchant { background: linear-gradient(135deg,#00b894,#00cec9); color: #fff; }
+        .btn-complaint { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.35); }
+        .btn-disabled { background: rgba(255,255,255,0.05); color: #666; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="icon"></div>
-        <h1>تم دفع الفاتورة</h1>
-        <p>هذه الفاتورة تم دفعها مسبقاً.</p>
+        <div class="icon">✅</div>
+        <h1>تم دفع الفاتورة بنجاح</h1>
+        <p class="sub">شكراً لك! تم استلام دفعتك.</p>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-k">رقم الفاتورة</span>
+                <span>
+                    <button class="copy-btn" onclick="copyId()">نسخ</button>
+                    <span class="id-val" id="invId">{{ invoice_id }}</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-k">التاجر</span>
+                <span class="info-v">{{ merchant_name }}</span>
+            </div>
+            {% if amount %}
+            <div class="info-row">
+                <span class="info-k">المبلغ</span>
+                <span class="info-v" style="color:#00e0b0;">{{ amount }} ر.س</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="btns">
+            {% if merchant_phone %}
+            <a class="btn btn-merchant" id="merchantBtn" href="#" onclick="contactMerchant(event)">💬 تواصل مع التاجر</a>
+            {% else %}
+            <span class="btn btn-disabled">التاجر لم يوفّر رقم تواصل</span>
+            {% endif %}
+            <a class="btn btn-complaint" id="complaintBtn" href="#" onclick="fileComplaint(event)">⚠️ رفع شكوى للإدارة</a>
+        </div>
     </div>
+    <script>
+        var INV_ID = "{{ invoice_id }}";
+        var MERCHANT_PHONE = "{{ merchant_phone }}";
+        var OWNER_WA = "{{ owner_whatsapp }}";
+
+        function copyId() {
+            var t = document.getElementById('invId').textContent.trim();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(t).then(function(){ alert('تم نسخ رقم الفاتورة'); });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = t; document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+                alert('تم نسخ رقم الفاتورة');
+            }
+        }
+        function normPhone(p) {
+            p = (p || '').replace(/[^0-9]/g, '');
+            if (p.indexOf('0') === 0) p = '966' + p.substring(1);
+            if (p.indexOf('966') !== 0 && p.length === 9) p = '966' + p;
+            return p;
+        }
+        function contactMerchant(e) {
+            e.preventDefault();
+            var ph = normPhone(MERCHANT_PHONE);
+            var msg = encodeURIComponent('السلام عليكم، بخصوص الفاتورة رقم ' + INV_ID);
+            window.open('https://wa.me/' + ph + '?text=' + msg, '_blank');
+        }
+        function fileComplaint(e) {
+            e.preventDefault();
+            var wa = OWNER_WA.replace(/[^0-9]/g, '');
+            var msg = encodeURIComponent('السلام عليكم، عندي مشكلة في الفاتورة رقم ' + INV_ID);
+            window.open('https://wa.me/' + wa + '?text=' + msg, '_blank');
+        }
+    </script>
 </body>
 </html>

@@ -74,7 +74,23 @@ def show_invoice(invoice_id):
     
     # إذا كانت الفاتورة مدفوعة مسبقاً
     if invoice_data.get('status') == 'completed':
-        return render_template('invoice/paid.html')
+        # جلب رقم جوال التاجر (للتواصل)
+        _m_phone = ''
+        try:
+            _mid = invoice_data.get('merchant_id') or invoice_data.get('created_by') or invoice_data.get('recipient_id')
+            if _mid:
+                _mdoc = db.collection('users').document(str(_mid)).get()
+                if _mdoc.exists:
+                    _m_phone = _mdoc.to_dict().get('phone', '') or ''
+        except Exception as _e:
+            print(f'paid merchant phone error: {_e}')
+        from config import CONTACT_WHATSAPP as _owner_wa
+        return render_template('invoice/paid.html',
+            invoice_id=invoice_id,
+            merchant_name=invoice_data.get('merchant_name') or invoice_data.get('recipient_name') or 'التاجر',
+            merchant_phone=_m_phone,
+            amount=invoice_data.get('amount', 0),
+            owner_whatsapp=_owner_wa)
     
     # عرض صفحة الفاتورة
     merchant_name = invoice_data.get('merchant_name') or invoice_data.get('recipient_name') or 'التاجر'
