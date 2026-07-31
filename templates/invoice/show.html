@@ -17,8 +17,8 @@
             padding: 20px;
         }
         .invoice-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            background: #1a1a2e;
+            border: 1px solid rgba(108,92,231,0.25);
             border-radius: 20px;
             padding: 30px;
             width: 100%;
@@ -202,8 +202,11 @@
 <body>
     <div class="invoice-card">
         <div class="header">
-            <div class="merchant-icon"></div>
-            <div class="merchant-name">{{ merchant_name }}</div>
+            <div class="merchant-icon" style="display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;">{{ merchant_name[0]|upper if merchant_name else 'T' }}</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;">
+                <span class="merchant-name">{{ merchant_name }}</span>
+                <span style="background:rgba(108,92,231,0.25);color:#a29bfe;font-size:12px;font-weight:700;padding:3px 12px;border-radius:12px;">بائع</span>
+            </div>
             <div class="invoice-id">رقم الفاتورة: {{ invoice_id }}</div>
         </div>
         <div class="amount-section">
@@ -274,6 +277,13 @@
                 </div>
                 <input type="hidden" name="full_phone" id="fullPhone">
                 <div class="error-msg" id="phoneError">الرجاء إدخال رقم جوال صحيح</div>
+            </div>
+            <div id="tabby-tamara-box" style="margin-bottom:14px;">
+                <div style="display:flex;gap:10px;">
+                    <button type="button" disabled style="flex:1;padding:13px;border:1px solid rgba(0,184,148,0.4);border-radius:12px;background:rgba(0,184,148,0.12);color:#00e0b0;font-size:15px;font-weight:800;font-family:inherit;cursor:not-allowed;">tabby</button>
+                    <button type="button" disabled style="flex:1;padding:13px;border:1px solid rgba(231,76,60,0.4);border-radius:12px;background:rgba(231,76,60,0.12);color:#e74c3c;font-size:15px;font-weight:800;font-family:inherit;cursor:not-allowed;">tamara</button>
+                </div>
+                <div style="text-align:center;color:#888;font-size:12px;margin-top:8px;">التقسيط قريباً</div>
             </div>
             <button type="submit" class="pay-btn" id="payBtn">
                 <span class="loading" id="loading">⏳ </span>
