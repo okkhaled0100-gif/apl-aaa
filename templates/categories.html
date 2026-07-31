@@ -622,6 +622,11 @@
     </style>
 </head>
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
+    {% if header_settings and header_settings.enabled and header_settings.text %}
+    <div id="promo-top-bar" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;text-align:center;padding:9px 15px;font-size:13px;font-weight:700;font-family:'Tajawal',sans-serif;">
+        {% if header_settings.link_url %}<a href="{{ header_settings.link_url }}" style="color:#fff;text-decoration:none;">{{ header_settings.text }}</a>{% else %}{{ header_settings.text }}{% endif %}
+    </div>
+    {% endif %}
     <header class="main-header">
         <div class="header-right">
             {% if is_logged_in %}
