@@ -872,6 +872,7 @@ def api_get_invoices():
                 data = doc.to_dict()
                 merchant_invoices_list.append({
                     'id': doc.id,
+                    'invoice_id': data.get('invoice_id', doc.id),
                     'merchant_id': data.get('merchant_id', ''),
                     'merchant_name': data.get('merchant_name', 'تاجر'),
                     'customer_phone': data.get('customer_phone', ''),
