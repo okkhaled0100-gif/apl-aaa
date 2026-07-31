@@ -350,7 +350,7 @@
                 <p id="step2SubText">أدخل الكود المرسل لك</p>
             </div>
 
-            <div class="timer-box">⏱️ <span id="countdown">2:00</span></div>
+            <div class="timer-box">⏱️ <span id="countdown">3:00</span></div>
 
             <form id="codeForm">
                 <div class="form-field code-field">
@@ -358,7 +358,7 @@
                     <input type="text" id="verifyCode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
                 </div>
                 <button type="submit" id="verifyBtn" class="btn-primary">تأكيد الدخول</button>
-                <button type="button" class="btn-secondary" onclick="goBack()">← رجوع</button>
+                <button type="button" class="btn-secondary" id="resendBtn" onclick="resendCode()" disabled>إعادة إرسال الكود</button>
             </form>
 
             <div id="error2" class="msg"></div>
@@ -442,7 +442,7 @@
 <script>
     var countdownInterval;
     var regCountdownInterval;
-    var secondsLeft = 120;
+    var secondsLeft = 180;
     var regSecondsLeft = 120;
     var currentUserId = '';
     var currentEmail = null;
@@ -589,15 +589,17 @@
     });
 
     function startCountdown() {
-        secondsLeft = 120;
+        secondsLeft = 180;
         updateCountdown();
         countdownInterval = setInterval(function() {
             secondsLeft--;
             updateCountdown();
             if (secondsLeft <= 0) {
                 clearInterval(countdownInterval);
-                showErr('error2', '⏰ انتهت صلاحية الكود');
+                showErr('error2', '⏰ انتهت صلاحية الكود! اضغط إعادة إرسال');
                 document.getElementById('verifyBtn').disabled = true;
+                var _rb = document.getElementById('resendBtn');
+                if (_rb) _rb.disabled = false;
             }
         }, 1000);
     }
@@ -607,18 +609,21 @@
         document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
     }
 
-    function goBack() {
+    function resendCode() {
+        var rb = document.getElementById('resendBtn');
+        if (rb && rb.disabled) return;
         clearInterval(countdownInterval);
-        document.getElementById('verifyCode').value = '';
+        var vc = document.getElementById('verifyCode');
+        if (vc) vc.value = '';
         hideMsg('error1'); hideMsg('error2'); hideMsg('success2');
-        document.getElementById('sendCodeBtn').disabled = false;
-        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
-        document.getElementById('sendCodeEmailBtn').disabled = false;
-        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
-        document.getElementById('sendCodePhoneBtn').disabled = false;
-        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
-        document.getElementById('verifyBtn').disabled = false;
-        document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
+        var ids = ['sendCodeBtn','sendCodeEmailBtn','sendCodePhoneBtn','verifyBtn'];
+        ids.forEach(function(id){
+            var el = document.getElementById(id);
+            if (el) el.disabled = false;
+        });
+        var vb = document.getElementById('verifyBtn');
+        if (vb) vb.textContent = 'تأكيد الدخول';
+        if (rb) rb.disabled = true;
         showStep('step1');
     }
 
