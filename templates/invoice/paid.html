@@ -115,15 +115,26 @@
         var MERCHANT_PHONE = "{{ merchant_phone }}";
         var OWNER_WA = "{{ owner_whatsapp }}";
 
+        function showToast(msg) {
+            var old = document.getElementById('_toast');
+            if (old) old.remove();
+            var t = document.createElement('div');
+            t.id = '_toast';
+            t.textContent = msg;
+            t.style.cssText = 'position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:#00b894;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.25s;';
+            document.body.appendChild(t);
+            requestAnimationFrame(function(){ t.style.opacity = '1'; });
+            setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 300); }, 1800);
+        }
         function copyId() {
             var t = document.getElementById('invId').textContent.trim();
             if (navigator.clipboard) {
-                navigator.clipboard.writeText(t).then(function(){ alert('تم نسخ رقم الفاتورة'); });
+                navigator.clipboard.writeText(t).then(function(){ showToast('تم نسخ رقم الفاتورة ✅'); });
             } else {
                 var ta = document.createElement('textarea');
                 ta.value = t; document.body.appendChild(ta); ta.select();
                 document.execCommand('copy'); document.body.removeChild(ta);
-                alert('تم نسخ رقم الفاتورة');
+                showToast('تم نسخ رقم الفاتورة ✅');
             }
         }
         function normPhone(p) {
