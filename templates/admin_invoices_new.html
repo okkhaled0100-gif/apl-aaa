@@ -262,6 +262,7 @@
             <table id="invoicesTable">
                 <thead>
                     <tr>
+                        <th>رقم الفاتورة</th>
                         <th>التاجر</th>
                         <th>رقم العميل</th>
                         <th>المبلغ</th>
@@ -438,11 +439,12 @@
     function renderInvoices(invoices) {
         const tbody = document.getElementById('invoicesBody');
         if (!invoices || invoices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">لا توجد فواتير تجار</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">لا توجد فواتير تجار</td></tr>';
             return;
         }
         tbody.innerHTML = invoices.map(inv => `
             <tr>
+                <td style="font-family:monospace;font-size:12px;color:var(--primary-light);">${inv.invoice_id || '-'}</td>
                 <td>${inv.merchant_name || ''}<br><small style="color:var(--muted)">${inv.merchant_id || ''}</small></td>
                 <td>${inv.customer_phone || '-'}</td>
                 <td class="amount">${(inv.amount || 0).toLocaleString()} ر.س</td>
