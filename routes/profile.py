@@ -310,9 +310,9 @@ def profile():
                             charge_dt = now  # افتراضي
                         
                         minutes_passed = (now - charge_dt).total_seconds() / 60
-                        is_available = minutes_passed >= 10  # 10 دقائق للاختبار
+                        is_available = minutes_passed >= 4320  # 72 ساعة (4320 دقيقة)
                         if not is_available:
-                            minutes_left_display = max(0, int(10 - minutes_passed))
+                            minutes_left_display = max(0, int(4320 - minutes_passed))
                     except:
                         is_available = True
                 
