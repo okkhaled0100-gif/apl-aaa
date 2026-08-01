@@ -484,6 +484,12 @@ def rewards_policy():
     return render_template('pages/rewards_policy.html', 
                           title="سياسة المكافآت",
                           current_year=datetime.now().year)
+@web_bp.route('/withdrawal-policy')
+def withdrawal_policy():
+    """صفحة سياسة السحب"""
+    return render_template('pages/withdrawal_policy.html',
+                          title="سياسة السحب",
+                          current_year=datetime.now().year)
 
 @web_bp.route('/contact-us')
 def contact_us():

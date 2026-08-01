@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}سياسة السحب{% endblock %}
+{% block content %}
+<div class="policy-page">
+    <div class="policy-container">
+        <div class="policy-header">
+            <i class="fas fa-money-bill-wave"></i>
+            <h1>سياسة السحب</h1>
+        </div>
+        <p class="intro-text">توضّح هذه السياسة شروط سحب الرصيد من محفظتك في متجر TR، وأنواع السحب والرسوم ومدة التنفيذ.</p>
+        <div class="policy-content">
+
+            <div class="policy-section">
+                <h3><i class="fas fa-coins"></i> 1. الحد الأدنى للسحب</h3>
+                <ul>
+                    <li>الحد الأدنى لأي عملية سحب هو <strong>10 ريال</strong>.</li>
+                    <li>يجب أن يكون رصيدك المتاح كافياً لتغطية المبلغ المطلوب.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-layer-group"></i> 2. أنواع السحب</h3>
+                <ul>
+                    <li><strong>السحب العادي:</strong> رسوم <strong>5.5%</strong> من المبلغ. يخضع الرصيد المشحون حديثاً لفترة تجميد قبل أن يصبح متاحاً للسحب.</li>
+                    <li><strong>السحب الفوري:</strong> رسوم <strong>8%</strong> من المبلغ. يتيح لك سحب رصيدك في أي وقت دون انتظار انتهاء فترة التجميد.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-hourglass-half"></i> 3. فترة التجميد</h3>
+                <ul>
+                    <li>يُجمّد الرصيد المشحون حديثاً لمدة <strong>72 ساعة</strong> (3 أيام) قبل أن يصبح متاحاً للسحب العادي.</li>
+                    <li>يمكنك تجاوز فترة التجميد وسحب رصيدك في أي وقت عبر <strong>السحب الفوري</strong> (برسوم 8%).</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-wallet"></i> 4. طريقة التحويل</h3>
+                <ul>
+                    <li>يمكنك اختيار استلام المبلغ عبر <strong>محفظة إلكترونية</strong> أو <strong>حساب بنكي</strong>.</li>
+                    <li>يجب إدخال الاسم الثنائي على الأقل (مثال: محمد بن أحمد)، ويُفضّل أن يكون مطابقاً لاسم صاحب الحساب.</li>
+                    <li>تتم عمليات التحويل الفعلية خلال <strong>أوقات العمل الرسمية</strong>، حتى لو قُدّم الطلب خارجها.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-shield-alt"></i> 5. أحكام عامة</h3>
+                <ul>
+                    <li>يحق للإدارة مراجعة أي طلب سحب، وقد تطلب توثيقاً إضافياً للتحقق من الهوية.</li>
+                    <li>الرصيد المكتسب من المكافآت غير قابل للسحب نقداً (راجع <a href="/rewards-policy">سياسة المكافآت</a>).</li>
+                    <li>يحق للإدارة رفض أو تعليق أي طلب سحب يُشتبه في مخالفته لشروط الاستخدام.</li>
+                </ul>
+            </div>
+
+        </div>
+        <div class="policy-footer">
+            آخر تحديث: 2026 — لأي استفسار حول السحب، تواصل معنا عبر صفحة <a href="/contact-us" style="color:#6c5ce7;">اتصل بنا</a>.
+        </div>
+    </div>
+    <style>
+    .policy-page { min-height: 100vh; padding: 40px 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .policy-container { max-width: 700px; width: 100%; background: rgba(26,26,46,0.6); border: 1px solid rgba(108,92,231,0.2); border-radius: 20px; padding: 40px; }
+    .policy-header { text-align: center; margin-bottom: 20px; }
+    .policy-header i { font-size: 40px; color: #6c5ce7; margin-bottom: 12px; }
+    .policy-header h1 { color: #fff; font-size: 28px; margin: 0; }
+    .intro-text { text-align: center; color: #b2bec3; font-size: 16px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .policy-section { margin-bottom: 25px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border-right: 3px solid #6c5ce7; }
+    .policy-section h3 { color: #a29bfe; margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .policy-section h3 i { color: #6c5ce7; }
+    .policy-section ul { list-style-type: none; padding: 0; margin: 0; }
+    .policy-section ul li { padding: 8px 0; padding-right: 20px; position: relative; line-height: 1.7; color: #b2bec3; }
+    .policy-section ul li::before { content: '✓'; position: absolute; right: 0; color: #00b894; }
+    .policy-section p { line-height: 1.8; color: #b2bec3; margin: 0 0 10px 0; }
+    .policy-section a { color: #6c5ce7; text-decoration: none; }
+    .policy-section a:hover { text-decoration: underline; }
+    .policy-footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: #636e72; font-size: 13px; }
+    .policy-footer a { text-decoration: none; }
+    @media (max-width: 600px) {
+        .policy-container { padding: 20px; border-radius: 15px; }
+        .policy-header h1 { font-size: 22px; }
+        .policy-section { padding: 15px; }
+        .policy-section h3 { font-size: 16px; }
+    }
+    </style>
+{% endblock %}
