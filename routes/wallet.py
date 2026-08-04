@@ -64,10 +64,18 @@ def wallet_page():
 
     # جلب حالة توثيق الإيميل (لتفعيل/تعطيل إنشاء الروابط)
     email_verified = False
+    user_phone = ''
     try:
         _udoc = db.collection('users').document(str(user_id)).get()
         if _udoc.exists:
-            email_verified = bool(_udoc.to_dict().get('email_verified', False))
+            _ud = _udoc.to_dict()
+            email_verified = bool(_ud.get('email_verified', False))
+            # رقم جوال العميل لتعبئة حقل الشحن تلقائياً (بصيغة محلية بدون 966)
+            _ph = str(_ud.get('phone', '') or '')
+            _ph = _ph.replace('+', '').replace(' ', '')
+            if _ph.startswith('966'):
+                _ph = '0' + _ph[3:]
+            user_phone = _ph
     except Exception:
         pass
     
@@ -181,6 +189,7 @@ def wallet_page():
                           contact_whatsapp=_wallet_whatsapp(),
                           link_limit=_wallet_link_limit(user_id),
                           my_links=my_links,
+                          user_phone=user_phone,
                           links_create_enabled=get_toggle('payment_links_create', True))
 
 
