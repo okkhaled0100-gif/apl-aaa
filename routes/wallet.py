@@ -212,6 +212,22 @@ def wallet_pay():
         order_id = f"TR{user_id}{int(time.time())}"
         order_description = f"Recharge {amount_int} SAR"
         
+        # جلب اسم وإيميل العميل من حسابه (بدل القيم الثابتة/الوهمية)
+        _cust_name_wp = 'Customer'
+        _cust_email_wp = f'user{user_id}@telegram.com'
+        try:
+            _udoc_wp = db.collection('users').document(str(user_id)).get()
+            if _udoc_wp.exists:
+                _ud_wp = _udoc_wp.to_dict()
+                _nm = _ud_wp.get('name') or _ud_wp.get('first_name') or _ud_wp.get('username')
+                if _nm:
+                    _cust_name_wp = str(_nm)[:50]
+                _em = _ud_wp.get('email')
+                if _em and _ud_wp.get('email_verified'):
+                    _cust_email_wp = str(_em)
+        except Exception:
+            pass
+        
         # حساب الـ hash
         to_hash = f"{order_id}{amount_int}SAR{order_description}{EDFAPAY_PASSWORD}".upper()
         md5_hash = hashlib.md5(to_hash.encode()).hexdigest()
@@ -234,13 +250,13 @@ def wallet_pay():
             'order_currency': 'SAR',
             'order_description': order_description,
             'req_token': 'N',
-            'payer_first_name': 'Customer',
+            'payer_first_name': _cust_name_wp,
             'payer_last_name': 'User',
             'payer_address': 'Riyadh',
             'payer_country': 'SA',
             'payer_city': 'Riyadh',
             'payer_zip': '12221',
-            'payer_email': f'user{user_id}@telegram.com',
+            'payer_email': _cust_email_wp,
             'payer_phone': formatted_phone,
             'payer_ip': '176.44.76.222',
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}",
