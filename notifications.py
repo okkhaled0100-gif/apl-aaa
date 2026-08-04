@@ -363,6 +363,7 @@ def notify_payment_failed(user_id, amount, order_id, reason=None, payment_type='
             "❌ <b>فشلت عملية الدفع!</b>\n\n"
             f"👤 <b>المستخدم:</b> {username or user_id}\n"
             f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"📱 <b>رقم الجوال:</b> {customer_phone or 'غير محدد'}\n"
             f"💰 <b>المبلغ:</b> {amount} ريال\n"
             f"🔗 <b>الطلب:</b> <code>{order_id}</code>\n"
             f"❗ <b>السبب:</b> {clean_reason}"

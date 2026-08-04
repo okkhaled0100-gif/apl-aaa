@@ -1366,6 +1366,32 @@ def merchant_webhook(merchant_id):
     return process_edfapay_callback(request, f"merchant_webhook/{merchant_id}")
 
 # دعم كلا الصيغتين: edfapay_webhook و edfapay-webhook
+def translate_decline(raw):
+    """ترجمة سبب رفض الدفع من EdfaPay إلى رسالة عربية واضحة للعميل."""
+    r = (raw or '').upper()
+    table = [
+        ('INSUFFICIENT_FUNDS', 'رصيد البطاقة غير كافٍ 💳'),
+        ('EXPIRED', 'البطاقة منتهية الصلاحية 📅'),
+        ('STOLEN', 'البطاقة مبلّغ عنها، تواصل مع بنكك'),
+        ('LOST', 'البطاقة مبلّغ عنها، تواصل مع بنكك'),
+        ('DO_NOT_HONOR', 'رفض البنك العملية، تواصل مع بنكك'),
+        ('DONOTHONOR', 'رفض البنك العملية، تواصل مع بنكك'),
+        ('INVALID_CARD', 'رقم البطاقة غير صحيح'),
+        ('INVALID CARD', 'رقم البطاقة غير صحيح'),
+        ('INCORRECT_PIN', 'الرقم السري غير صحيح'),
+        ('RESTRICTED', 'البطاقة مقيّدة لهذه العملية'),
+        ('EXCEEDS', 'تجاوزت حد البطاقة المسموح'),
+        ('AUTHENTICATION', 'لم يكتمل التحقق (رمز OTP)، حاول مرة أخرى'),
+        ('3DS', 'لم يكتمل التحقق (رمز OTP)، حاول مرة أخرى'),
+        ('DUPLICATE', 'عملية مكررة، تحقق قبل إعادة المحاولة'),
+        ('TIMEOUT', 'انتهى وقت العملية، حاول مرة أخرى'),
+        ('DECLINED', 'رُفضت العملية من البنك'),
+    ]
+    for key, ar in table:
+        if key in r:
+            return ar
+    return 'تم رفض العملية، تأكد من بيانات البطاقة أو جرّب بطاقة أخرى'
+
 @app.route('/payment/edfapay_webhook', methods=['GET', 'POST'])
 @app.route('/payment/edfapay-webhook', methods=['GET', 'POST'])
 @limiter.limit("30 per minute")  # 🔒 Rate Limiting: منع هجمات الـ webhook
@@ -1787,13 +1813,9 @@ _محاولة اختراق واضحة!_
                     pay_amount = payment_data.get('amount', 0)
                     is_merchant_invoice = payment_data.get('is_merchant_invoice', False)
                     
-                    # تنظيف سبب الرفض من الأحرف الخاصة
-                    decline_reason = data.get('decline_reason', 'فشلت العملية')
-                    # إزالة الأحرف التي تسبب مشاكل في Markdown
-                    decline_reason = decline_reason.replace('_', ' ').replace('*', '').replace('`', '').replace('[', '').replace(']', '')
-                    # اختصار الرسالة إذا كانت طويلة
-                    if len(decline_reason) > 50:
-                        decline_reason = 'تم رفض البطاقة'
+                    # ترجمة سبب الرفض لرسالة عربية واضحة
+                    _raw_reason = str(data.get('decline_reason', '') or '')
+                    decline_reason = translate_decline(_raw_reason)
                     
                     # رسالة مختلفة حسب نوع الدفع
                     if is_merchant_invoice:
@@ -1801,13 +1823,18 @@ _محاولة اختراق واضحة!_
                     else:
                         msg_text = f"❌ فشلت عملية الشحن\n\n💰 المبلغ: {pay_amount} ريال\n❗ السبب: {decline_reason}\n\n💡 تأكد من رصيد البطاقة أو جرب بطاقة أخرى"
                     
-                    bot.send_message(int(user_id), msg_text)
+                    # إرسال تيليجرام فقط لعملاء تيليجرام (ID رقمي)؛ عميل الموقع يرى النتيجة في صفحة الدفع
+                    if user_id and str(user_id).isdigit():
+                        bot.send_message(int(user_id), msg_text)
+                    else:
+                        print(f"ℹ️ عميل موقع ({user_id}) - يرى نتيجة الرفض في صفحة الدفع")
                 except Exception as e:
                     print(f"⚠️ خطأ في إرسال إشعار للعميل: {e}")
             
             # إشعار المالك بالفشل
             try:
                 raw_reason = data.get('decline_reason', status)
+                raw_reason = translate_decline(str(raw_reason or status))  # ترجمة للعربي
                 
                 # جلب بيانات إضافية للمالك
                 merchant_id = payment_data.get('user_id', 'غير محدد') if payment_data else 'غير محدد'
@@ -1836,12 +1863,26 @@ _محاولة اختراق واضحة!_
                         customer_phone=customer_phone
                     )
                 else:
+                    # جلب اسم وجوال العميل من حسابه (بدل عرض الـ ID الخام)
+                    _cust_name = None
+                    _cust_phone = None
+                    try:
+                        if merchant_id and merchant_id != 'غير محدد':
+                            _cust_doc = db.collection('users').document(str(merchant_id)).get()
+                            if _cust_doc.exists:
+                                _cd = _cust_doc.to_dict()
+                                _cust_name = _cd.get('name') or _cd.get('first_name') or _cd.get('username')
+                                _cust_phone = _cd.get('phone')
+                    except Exception:
+                        pass
                     notify_payment_failed(
                         user_id=merchant_id,
                         amount=payment_data.get('amount', 0) if payment_data else 0,
                         order_id=order_id,
                         reason=raw_reason,
-                        payment_type='شحن رصيد'
+                        payment_type='شحن رصيد',
+                        username=_cust_name,
+                        customer_phone=_cust_phone
                     )
             except:
                 pass
