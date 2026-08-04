@@ -1741,18 +1741,19 @@ _محاولة اختراق واضحة!_
                     except:
                         pass
                 else:
-                    # 🔹 شحن عادي - إشعار المستخدم
+                    # 🔹 شحن عادي - إشعار المستخدم (تيليجرام فقط لعميل تيليجرام؛ عميل الموقع يرى النجاح في الصفحة)
                     try:
-                        new_balance = get_balance(user_id)
-                        bot.send_message(
-                            int(user_id),
-                            "✅ *تم شحن رصيدك بنجاح!*\n\n"
-                            f"💰 المبلغ المضاف: {pay_amount} ريال\n"
-                            f"💵 رصيدك الحالي: {new_balance} ريال\n\n"
-                            f"📋 رقم العملية: `{order_id}`\n\n"
-                            "🎉 استمتع بالتسوق!",
-                            parse_mode="Markdown"
-                        )
+                        if user_id and str(user_id).isdigit():
+                            new_balance = get_balance(user_id)
+                            bot.send_message(
+                                int(user_id),
+                                "✅ *تم شحن رصيدك بنجاح!*\n\n"
+                                f"💰 المبلغ المضاف: {pay_amount} ريال\n"
+                                f"💵 رصيدك الحالي: {new_balance} ريال\n\n"
+                                f"📋 رقم العملية: `{order_id}`\n\n"
+                                "🎉 استمتع بالتسوق!",
+                                parse_mode="Markdown"
+                            )
                     except Exception as e:
                         print(f"⚠️ خطأ في إرسال إشعار: {e}")
                     
