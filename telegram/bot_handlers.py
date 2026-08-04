@@ -1458,7 +1458,7 @@ def generate_invoice_id():
     chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
     return ''.join(random.choice(chars) for _ in range(6))
 
-def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None, customer_email=None):
+def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None, customer_email=None, customer_ip=None):
     """إنشاء فاتورة دفع للعميل وإرسالها لـ EdfaPay"""
     try:
         # استخدام معرف الفاتورة الأصلي أو توليد جديد
@@ -1506,7 +1506,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
             'payer_zip': '12221',
             'payer_email': payer_email,
             'payer_phone': phone,
-            'payer_ip': '176.44.76.222',
+            'payer_ip': (customer_ip or '176.44.76.222'),
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}&invoice={invoice_id}",
             'auth': 'N',
             'recurring_init': 'N',

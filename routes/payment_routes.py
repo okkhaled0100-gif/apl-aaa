@@ -197,7 +197,10 @@ def process_invoice_payment(invoice_id):
     merchant_name = invoice_data.get('merchant_name')
     amount = invoice_data.get('amount')
     
-    result = create_customer_invoice(merchant_id, merchant_name, amount, phone, invoice_id, customer_email=customer_email)
+    # جلب IP العميل الحقيقي (اللي يضغط اتمام الدفع) لتمريره لبوابة الدفع
+    _cust_ip_pr = request.headers.get('X-Forwarded-For', request.remote_addr) or ''
+    _cust_ip_pr = _cust_ip_pr.split(',')[0].strip()
+    result = create_customer_invoice(merchant_id, merchant_name, amount, phone, invoice_id, customer_email=customer_email, customer_ip=_cust_ip_pr)
     
     if result['success']:
         # تحديث الفاتورة الأصلية

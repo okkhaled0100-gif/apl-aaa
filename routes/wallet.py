@@ -228,6 +228,10 @@ def wallet_pay():
         except Exception:
             pass
         
+        # جلب IP العميل الحقيقي (خلف Cloudflare) بدل الثابت
+        _real_ip_wp = request.headers.get('X-Forwarded-For', request.remote_addr) or '176.44.76.222'
+        _real_ip_wp = _real_ip_wp.split(',')[0].strip()
+
         # حساب الـ hash
         to_hash = f"{order_id}{amount_int}SAR{order_description}{EDFAPAY_PASSWORD}".upper()
         md5_hash = hashlib.md5(to_hash.encode()).hexdigest()
@@ -258,7 +262,7 @@ def wallet_pay():
             'payer_zip': '12221',
             'payer_email': _cust_email_wp,
             'payer_phone': formatted_phone,
-            'payer_ip': '176.44.76.222',
+            'payer_ip': _real_ip_wp,
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}",
             'checkout_expiry_mins': '60',
             'auth': 'N',
