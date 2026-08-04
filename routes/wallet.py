@@ -174,6 +174,7 @@ def wallet_page():
                     'created_at': _x.get('created_at',0),
                 })
             my_links.sort(key=lambda x: x.get('created_at',0), reverse=True)
+            my_links = my_links[:4]  # عرض آخر 4 فواتير فقط
     except Exception as _e:
         print(f'خطأ في جلب روابط التاجر: {_e}')
 
