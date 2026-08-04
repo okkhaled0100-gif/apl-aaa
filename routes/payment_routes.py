@@ -12,6 +12,33 @@ except ImportError:
 import time
 from extensions import db, BOT_USERNAME
 
+def _translate_decline(raw):
+    """ترجمة سبب رفض الدفع إلى رسالة عربية واضحة للعميل."""
+    r = (raw or '').upper()
+    table = [
+        ('INSUFFICIENT_FUNDS', 'رصيد البطاقة غير كافٍ 💳'),
+        ('EXPIRED', 'البطاقة منتهية الصلاحية 📅'),
+        ('STOLEN', 'البطاقة مبلّغ عنها، تواصل مع بنكك'),
+        ('LOST', 'البطاقة مبلّغ عنها، تواصل مع بنكك'),
+        ('DO_NOT_HONOR', 'رفض البنك العملية، تواصل مع بنكك'),
+        ('DONOTHONOR', 'رفض البنك العملية، تواصل مع بنكك'),
+        ('INVALID_CARD', 'رقم البطاقة غير صحيح'),
+        ('INVALID CARD', 'رقم البطاقة غير صحيح'),
+        ('INCORRECT_PIN', 'الرقم السري غير صحيح'),
+        ('RESTRICTED', 'البطاقة مقيّدة لهذه العملية'),
+        ('EXCEEDS', 'تجاوزت حد البطاقة المسموح'),
+        ('AUTHENTICATION', 'لم يكتمل التحقق (رمز OTP)، حاول مرة أخرى'),
+        ('3DS', 'لم يكتمل التحقق (رمز OTP)، حاول مرة أخرى'),
+        ('DUPLICATE', 'عملية مكررة، تحقق قبل إعادة المحاولة'),
+        ('TIMEOUT', 'انتهى وقت العملية، حاول مرة أخرى'),
+        ('DECLINED', 'رُفضت العملية من البنك'),
+    ]
+    for key, ar in table:
+        if key in r:
+            return ar
+    return 'تم رفض العملية، تأكد من بيانات البطاقة أو جرّب بطاقة أخرى'
+
+
 # استيراد الدوال المطلوبة
 from telegram.bot_handlers import create_customer_invoice
 
@@ -244,6 +271,7 @@ def payment_success():
         return render_template('payment/success.html', bot_username=BOT_USERNAME)
     elif is_failed:
         error_msg = decline_reason or status or "فشلت عملية الدفع"
+        error_msg = _translate_decline(str(error_msg))  # ترجمة للعربي
         return render_template('payment/failed.html', 
             bot_username=BOT_USERNAME, 
             error_msg=error_msg)
