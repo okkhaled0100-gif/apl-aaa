@@ -173,7 +173,16 @@ def wallet_page():
                     'customer_name': _x.get('customer_name','') or '',
                     'created_at': _x.get('created_at',0),
                 })
-            my_links.sort(key=lambda x: x.get('created_at',0), reverse=True)
+            # ترتيب آمن: created_at قد يكون رقماً أو كائن Firestore timestamp
+            def _sort_key_created(_it):
+                _c = _it.get('created_at', 0)
+                try:
+                    if hasattr(_c, 'timestamp'):
+                        return _c.timestamp()
+                    return float(_c or 0)
+                except Exception:
+                    return 0
+            my_links.sort(key=_sort_key_created, reverse=True)
             my_links = my_links[:4]  # عرض آخر 4 فواتير فقط
     except Exception as _e:
         print(f'خطأ في جلب روابط التاجر: {_e}')
