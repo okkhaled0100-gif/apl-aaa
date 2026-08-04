@@ -1783,8 +1783,6 @@ _محاولة اختراق واضحة!_
         # 2️⃣ حالة الفشل/الرفض
         elif status_upper in FAILED_STATUSES:
             print(f"❌ EdfaPay: عملية مرفوضة - {status}")
-            # [DIAG_DECLINE] تشخيص مؤقت: طباعة صيغة سبب الرفض الخام
-            print(f"🔍 DIAG_DECLINE | decline_reason={data.get('decline_reason')!r} | status={status!r} | error_code={data.get('error_code')!r} | error={data.get('error')!r} | message={data.get('message')!r}")
             
             # البحث عن بيانات الطلب لإرسال إشعار للعميل
             payment_data = pending_payments.get(order_id)
