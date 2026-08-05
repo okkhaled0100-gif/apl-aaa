@@ -1466,6 +1466,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
         order_id = f"{invoice_id}{int(time.time())}"
         # وصف الطلب يشمل اسم المنتج إن وُجد (الحساب يستخدم نفس المتغير فالهاش يبقى صحيحاً)
         _pn = str(product_name).strip()[:40] if product_name else ''
+        print(f"DIAG_DESC: product_name={product_name!r} _pn={_pn!r}")
         if _pn:
             order_description = f"Invoice {invoice_id} - {_pn} - {amount} SAR"
         else:
