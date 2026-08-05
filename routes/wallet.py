@@ -154,7 +154,7 @@ def wallet_page():
     my_links = []
     try:
         if _wallet_is_merchant(user_id):
-            _STATUS_AR = {'pending':'بانتظار الدفع','paid':'مدفوع','expired':'منتهي','declined':'مرفوض'}
+            _STATUS_AR = {'pending':'بانتظار الدفع','paid':'مدفوع','completed':'مدفوع','expired':'منتهي','declined':'مرفوض','failed':'فشل'}
             _lref = query_where(db.collection('merchant_invoices'), 'merchant_id', '==', user_id)
             for _d in _lref.stream():
                 _x = _d.to_dict()
