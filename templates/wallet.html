@@ -509,7 +509,7 @@
                         <span style="color:var(--green);font-weight:bold;">{{ lk.amount }} ر.س</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;">
-                        {% if lk.status == 'paid' %}
+                        {% if lk.status == 'paid' or lk.status == 'completed' %}
                         <span style="background:rgba(0,184,148,0.18);color:#00e0b0;padding:3px 12px;border-radius:20px;">✅ {{ lk.status_ar }}</span>
                         {% elif lk.status == 'expired' %}
                         <span style="background:rgba(231,76,60,0.15);color:#e74c3c;padding:3px 12px;border-radius:20px;">⌛ {{ lk.status_ar }}</span>
@@ -682,7 +682,7 @@
 
     function showLinkDetails(d) {
         var url = window.location.origin + '/invoice/' + d.id;
-        var isPaid = (d.status === 'paid');
+        var isPaid = (d.status === 'paid' || d.status === 'completed');
         var ov = document.getElementById('linkDetailsOverlay');
         if (!ov) {
             ov = document.createElement('div');
