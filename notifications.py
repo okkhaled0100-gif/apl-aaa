@@ -152,7 +152,7 @@ def is_admin_or_owner(telegram_id):
 
 # ===================== إشعارات محددة =====================
 
-def notify_new_charge(user_id, amount, method='edfapay', username=None, async_mode=True):
+def notify_new_charge(user_id, amount, method='edfapay', username=None, async_mode=True, customer_phone=None):
     """إشعار بشحن رصيد جديد"""
     method_names = {
         'edfapay': '💳 EdfaPay',
@@ -165,6 +165,7 @@ def notify_new_charge(user_id, amount, method='edfapay', username=None, async_mo
         "💰 <b>شحن رصيد جديد!</b>\n\n"
         f"👤 <b>المستخدم:</b> {username or user_id}\n"
         f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"📱 <b>رقم الجوال:</b> {customer_phone or 'غير محدد'}\n"
         f"💵 <b>المبلغ:</b> {amount} ر.س\n"
         f"📍 <b>الطريقة:</b> {method_names.get(method, method)}"
     )

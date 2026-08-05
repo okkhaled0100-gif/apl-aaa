@@ -1629,8 +1629,18 @@ _محاولة اختراق واضحة!_
                         if _bonus > 0:
                             add_bonus(user_id, _bonus)
                 
-                # ✅ إشعار المالك بالشحن
-                notify_new_charge(user_id, pay_amount, method='edfapay')
+                # ✅ إشعار المالك بالشحن (مع اسم ورقم العميل)
+                _chg_name = None
+                _chg_phone = None
+                try:
+                    _chg_doc = db.collection('users').document(str(user_id)).get()
+                    if _chg_doc.exists:
+                        _cdd = _chg_doc.to_dict()
+                        _chg_name = _cdd.get('name') or _cdd.get('first_name') or _cdd.get('username')
+                        _chg_phone = _cdd.get('phone')
+                except Exception:
+                    pass
+                notify_new_charge(user_id, pay_amount, method='edfapay', username=_chg_name, customer_phone=_chg_phone)
                 
                 # ✅ تسجيل في سجل الشحنات للسحب
                 try:
