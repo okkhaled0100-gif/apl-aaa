@@ -1458,18 +1458,13 @@ def generate_invoice_id():
     chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
     return ''.join(random.choice(chars) for _ in range(6))
 
-def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None, customer_email=None, customer_ip=None, customer_name=None, product_name=None):
+def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, original_invoice_id=None, customer_email=None, customer_ip=None, customer_name=None):
     """إنشاء فاتورة دفع للعميل وإرسالها لـ EdfaPay"""
     try:
         # استخدام معرف الفاتورة الأصلي أو توليد جديد
         invoice_id = original_invoice_id or f"INV{generate_invoice_id()}"
         order_id = f"{invoice_id}{int(time.time())}"
-        # وصف الطلب يشمل اسم المنتج إن وُجد (الحساب يستخدم نفس المتغير فالهاش يبقى صحيحاً)
-        _pn = str(product_name).strip()[:40] if product_name else ''
-        if _pn:
-            order_description = f"Invoice {invoice_id} - {_pn} - {amount} SAR"
-        else:
-            order_description = f"Invoice {invoice_id} - {amount} SAR"
+        order_description = f"Invoice {invoice_id} - {amount} SAR"
         
         # إنشاء الـ Hash
         to_hash = f"{order_id}{amount}SAR{order_description}{EDFAPAY_PASSWORD}".upper()
