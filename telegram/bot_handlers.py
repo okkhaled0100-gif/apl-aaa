@@ -1560,6 +1560,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
                     'customer_phone': phone,
                     'status': 'pending',
                     'created_at': firestore.SERVER_TIMESTAMP,
+                    'created_by': merchant_id,  # ليظهر في روابطي
                     'expires_at': expires_at
                 })
                 

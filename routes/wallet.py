@@ -155,17 +155,7 @@ def wallet_page():
     try:
         if _wallet_is_merchant(user_id):
             _STATUS_AR = {'pending':'بانتظار الدفع','paid':'مدفوع','expired':'منتهي','declined':'مرفوض'}
-            print(f"DIAG_LINKS: user_id الحالي = {user_id!r} (النوع: {type(user_id).__name__})")
-            # تشخيص: جلب كل الفواتير بلا فلتر لمقارنة created_by
-            try:
-                for _ad in db.collection('merchant_invoices').stream():
-                    _ax = _ad.to_dict()
-                    _cb = _ax.get('created_by')
-                    _match = (_cb == user_id)
-                    print(f"DIAG_ALL: id={_ad.id} created_by={_cb!r}({type(_cb).__name__}) recharge={_ax.get('is_recharge_link')} match={_match}")
-            except Exception as _ee:
-                print(f"DIAG_ALL_ERR: {_ee}")
-            _lref = query_where(db.collection('merchant_invoices'), 'created_by', '==', user_id)
+            _lref = query_where(db.collection('merchant_invoices'), 'merchant_id', '==', user_id)
             for _d in _lref.stream():
                 _x = _d.to_dict()
                 _st = _x.get('status','pending')
@@ -192,10 +182,6 @@ def wallet_page():
                     return float(_c or 0)
                 except Exception:
                     return 0
-            # [DIAG_LINKS] تشخيص مؤقت
-            print(f"DIAG_LINKS: عدد الفواتير قبل الترتيب = {len(my_links)}")
-            for _dl in my_links:
-                print(f"DIAG_LINKS: id={_dl.get('invoice_id')} status={_dl.get('status')} created_at={_dl.get('created_at')!r} sortkey={_sort_key_created(_dl)}")
             my_links.sort(key=_sort_key_created, reverse=True)
             my_links = my_links[:4]  # عرض آخر 4 فواتير فقط
     except Exception as _e:
