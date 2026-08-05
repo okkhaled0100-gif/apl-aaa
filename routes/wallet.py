@@ -182,6 +182,10 @@ def wallet_page():
                     return float(_c or 0)
                 except Exception:
                     return 0
+            # [DIAG_LINKS] تشخيص مؤقت
+            print(f"DIAG_LINKS: عدد الفواتير قبل الترتيب = {len(my_links)}")
+            for _dl in my_links:
+                print(f"DIAG_LINKS: id={_dl.get('invoice_id')} status={_dl.get('status')} created_at={_dl.get('created_at')!r} sortkey={_sort_key_created(_dl)}")
             my_links.sort(key=_sort_key_created, reverse=True)
             my_links = my_links[:4]  # عرض آخر 4 فواتير فقط
     except Exception as _e:
