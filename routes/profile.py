@@ -1336,7 +1336,7 @@ def submit_withdraw():
         
         # حساب الرسوم
         if withdraw_type == 'normal':
-            fee_percent = 5.5
+            fee_percent = 5
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
             import datetime
@@ -1471,7 +1471,7 @@ def submit_withdraw():
         
         # إرسال إشعار للمستخدم
         try:
-            type_text = "عادي (5.5%)" if withdraw_type == 'normal' else "فوري (8%)"
+            type_text = "عادي (5%)" if withdraw_type == 'normal' else "فوري (8%)"
             
             # إرسال إشعار لقناة التفاعلات
             telegram_username = session.get('telegram_username', '')
