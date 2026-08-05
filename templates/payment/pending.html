@@ -75,7 +75,7 @@
 
         function checkStatus() {
             if (!orderId || checkCount >= maxChecks) {
-                document.getElementById('status-msg').innerHTML = '<p>⚠️ انتهى وقت التحقق - تحقق من البوت</p>';
+                document.getElementById('status-msg').innerHTML = '<p>⚠️ انتهى وقت التحقق — تواصل مع التاجر لتأكيد طلبك</p>';
                 return;
             }
             checkCount++;
@@ -98,7 +98,7 @@
 
         setTimeout(function() {
             if (checkCount < maxChecks) {
-                document.getElementById('status-msg').innerHTML = '<p>📨 تم إرسال طلبك - تحقق من البوت</p>';
+                document.getElementById('status-msg').innerHTML = '<p>📨 تم استلام طلبك — سيتم تأكيده مع التاجر قريباً</p>';
             }
         }, 10000);
     </script>
