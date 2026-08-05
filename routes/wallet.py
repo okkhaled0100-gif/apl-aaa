@@ -155,6 +155,7 @@ def wallet_page():
     try:
         if _wallet_is_merchant(user_id):
             _STATUS_AR = {'pending':'بانتظار الدفع','paid':'مدفوع','expired':'منتهي','declined':'مرفوض'}
+            print(f"DIAG_LINKS: user_id الحالي = {user_id!r} (النوع: {type(user_id).__name__})")
             _lref = query_where(db.collection('merchant_invoices'), 'created_by', '==', user_id)
             for _d in _lref.stream():
                 _x = _d.to_dict()
