@@ -237,6 +237,9 @@
                         <button class="btn btn-success btn-sm" onclick="addBalance('${userId}', '${name}')">
                              شحن
                         </button>
+                        <button class="btn btn-sm" style="background:#e74c3c;color:#fff;" onclick="deductBalance('${userId}', '${name}')">
+                             خصم
+                        </button>
                     </td>
                 </tr>
             `;
@@ -514,6 +517,27 @@
             const data = await res.json();
             if (data.status === 'success' || data.success) {
                 showToast(` تم إضافة ${amount} ر.س لـ ${name}`);
+                loadCustomers();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+    async function deductBalance(userId, name) {
+        const amount = prompt(` كم تريد خصمه من رصيد ${name}؟`);
+        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
+        if (!confirm(`تأكيد خصم ${amount} ر.س من ${name}؟`)) return;
+        try {
+            const res = await fetch('/api/admin/deduct_balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, amount: parseFloat(amount) })
+            });
+            const data = await res.json();
+            if (data.status === 'success' || data.success) {
+                showToast(` تم خصم ${amount} ر.س من ${name}`);
                 loadCustomers();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');

@@ -1508,6 +1508,33 @@ def api_add_balance():
     
     return {'status': 'success'}
 
+@admin_bp.route('/api/admin/deduct_balance', methods=['POST'])
+def api_deduct_balance():
+    """خصم رصيد مستخدم يدوياً (المالك) - مع حماية الرصيد الكافي"""
+    if not session.get('is_admin'):
+        return {'status': 'error', 'message': 'غير مصرح!'}
+    from firebase_utils import get_balance, deduct_balance
+    data = request.json
+    user_id = str(data.get('user_id'))
+    try:
+        amount = float(data.get('amount'))
+    except (TypeError, ValueError):
+        return {'status': 'error', 'message': 'مبلغ غير صحيح'}
+    if not user_id or amount <= 0:
+        return {'status': 'error', 'message': 'بيانات غير صحيحة'}
+    # حماية: التحقق من الرصيد الكافي قبل الخصم (منع الرصيد السالب)
+    current = float(get_balance(user_id) or 0)
+    if amount > current:
+        return {'status': 'error', 'message': f'الرصيد غير كافٍ! الرصيد الحالي: {current} ريال'}
+    deduct_balance(user_id, amount, description='خصم يدوي من الإدارة')
+    try:
+        if bot and str(user_id).isdigit():
+            bot.send_message(int(user_id), f"⚠️ تم خصم {amount} ريال من رصيدك من قبل الإدارة.")
+    except Exception:
+        pass
+    return {'status': 'success'}
+
+
 @admin_bp.route('/api/add_product', methods=['POST'])
 def api_add_product():
     """إضافة منتج"""
