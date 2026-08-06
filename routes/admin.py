@@ -2607,6 +2607,10 @@ def api_get_withdrawals():
                     except Exception:
                         pass  # بيانات قديمة غير مشفّرة - تُعرض كما هي
                 
+                # توحيد أسماء الرسوم للواجهة (الحفظ: fee_amount/fee_percent)
+                data['fee'] = data.get('fee_amount', data.get('fee', 0))
+                data['fee_percentage'] = data.get('fee_percent', data.get('fee_percentage', 0))
+                
                 withdrawals.append(data)
         
         return jsonify({'status': 'success', 'withdrawals': withdrawals})
