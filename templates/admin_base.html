@@ -471,6 +471,32 @@
             word-break: break-word;
             overflow-wrap: break-word;
         }
+
+        /* MODAL-TEXT-FIX: كسر النص الطويل داخل كل النوافذ (منع تعدّي الأحرف) */
+        .modal, .modal-content, .modal-body,
+        [id*="odal"], [id*="verlay"], [class*="odal"], [class*="verlay"] {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .modal-content, .modal-body {
+            overflow-x: hidden;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .modal-body *, .modal-content * {
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+        /* البيانات السرية / الأكواد الطويلة: تنكسر وتُمرّر عند الحاجة */
+        .modal-body [style*="monospace"],
+        .modal-body pre, .modal-content pre,
+        .modal-body code, .modal-content code {
+            white-space: pre-wrap !important;
+            word-break: break-all;
+            overflow-wrap: anywhere;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
