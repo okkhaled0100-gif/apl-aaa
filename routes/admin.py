@@ -2289,6 +2289,13 @@ def api_get_orders():
                 else:
                     pending += 1
                 
+                # فك تشفير البيانات السرية للطلب (hidden_data)
+                if order.get('hidden_data'):
+                    try:
+                        order['hidden_data'] = decrypt_data(order['hidden_data'])
+                    except Exception:
+                        pass  # بيانات قديمة غير مشفّرة - تُعرض كما هي
+                
                 orders.append(order)
         
         return jsonify({
