@@ -2611,6 +2611,15 @@ def api_get_withdrawals():
                 data['fee'] = data.get('fee_amount', data.get('fee', 0))
                 data['fee_percentage'] = data.get('fee_percent', data.get('fee_percentage', 0))
                 
+                # توحيد نوع السحب والاسم للواجهة
+                # النافذة تقارن withdrawal_type بـ bank/wallet، لكن الحفظ يخزّنها في method
+                data['withdrawal_type'] = data.get('method', data.get('withdrawal_type', ''))
+                # سرعة السحب (عادي/فوري) محفوظة في withdraw_type
+                data['speed_type'] = data.get('withdraw_type', '')
+                # الاسم: توحيد full_name / user_name
+                if not data.get('full_name'):
+                    data['full_name'] = data.get('user_name', '')
+                
                 withdrawals.append(data)
         
         return jsonify({'status': 'success', 'withdrawals': withdrawals})
