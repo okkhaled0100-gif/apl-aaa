@@ -2593,18 +2593,19 @@ def api_get_withdrawals():
                 if data.get('created_at'):
                     data['created_at'] = data['created_at'].isoformat() if hasattr(data['created_at'], 'isoformat') else str(data['created_at'])
                 
-                # فك تشفير البيانات الحساسة
-                if data.get('iban_encrypted'):
+                # فك تشفير الآيبان (الحقل الصحيح: iban)
+                if data.get('iban'):
                     try:
-                        data['iban'] = decrypt_data(data['iban_encrypted'])
-                    except:
-                        data['iban'] = '***مشفر***'
+                        data['iban'] = decrypt_data(data['iban'])
+                    except Exception:
+                        pass  # بيانات قديمة غير مشفّرة - تُعرض كما هي
                 
-                if data.get('wallet_number_encrypted'):
+                # فك تشفير رقم المحفظة (الحقل الصحيح: wallet_number)
+                if data.get('wallet_number'):
                     try:
-                        data['wallet_number'] = decrypt_data(data['wallet_number_encrypted'])
-                    except:
-                        data['wallet_number'] = '***مشفر***'
+                        data['wallet_number'] = decrypt_data(data['wallet_number'])
+                    except Exception:
+                        pass  # بيانات قديمة غير مشفّرة - تُعرض كما هي
                 
                 withdrawals.append(data)
         
@@ -2777,20 +2778,20 @@ def api_resend_withdrawal_notification(withdrawal_id):
         
         data = doc.to_dict()
         
-        # فك تشفير البيانات
+        # فك تشفير البيانات (الحقول الصحيحة: iban و wallet_number)
         iban = ''
         wallet_number = ''
-        if data.get('iban_encrypted'):
+        if data.get('iban'):
             try:
-                iban = decrypt_data(data['iban_encrypted'])
-            except:
-                iban = '***خطأ في فك التشفير***'
+                iban = decrypt_data(data['iban'])
+            except Exception:
+                iban = data.get('iban', '')  # بيانات قديمة غير مشفّرة
         
-        if data.get('wallet_number_encrypted'):
+        if data.get('wallet_number'):
             try:
-                wallet_number = decrypt_data(data['wallet_number_encrypted'])
-            except:
-                wallet_number = '***خطأ في فك التشفير***'
+                wallet_number = decrypt_data(data['wallet_number'])
+            except Exception:
+                wallet_number = data.get('wallet_number', '')  # بيانات قديمة غير مشفّرة
         
         # إرسال الإشعار للأدمن
         if bot and ADMIN_ID:
