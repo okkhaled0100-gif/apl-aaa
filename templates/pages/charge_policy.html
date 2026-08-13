@@ -1,5 +1,29 @@
 {% extends "base.html" %}
-{% block title %}سياسة الشحن{% endblock %}
+{% block title %}سياسة الشحن<style>
+    .policy-page { min-height: 100vh; padding: 20px; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); }
+    .policy-container { max-width: 900px; margin: 0 auto; padding: 40px; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; color: #e0e0e0; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid rgba(108, 92, 231, 0.2); }
+    .policy-header { text-align: center; margin-bottom: 30px; }
+    .policy-header i { font-size: 50px; color: #6c5ce7; margin-bottom: 15px; }
+    .policy-header h1 { color: #fff; font-size: 28px; margin: 0; }
+    .intro-text { text-align: center; color: #b2bec3; font-size: 16px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .policy-section { margin-bottom: 25px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border-right: 3px solid #6c5ce7; }
+    .policy-section h3 { color: #a29bfe; margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .policy-section h3 i { color: #6c5ce7; }
+    .policy-section ul { list-style-type: none; padding: 0; margin: 0; }
+    .policy-section ul li { padding: 8px 0; padding-right: 20px; position: relative; line-height: 1.7; color: #b2bec3; }
+    .policy-section ul li::before { content: '✓'; position: absolute; right: 0; color: #00b894; }
+    .policy-section p { line-height: 1.8; color: #b2bec3; margin: 0 0 10px 0; }
+    .policy-section a { color: #6c5ce7; text-decoration: none; }
+    .policy-section a:hover { text-decoration: underline; }
+    .policy-footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: #636e72; font-size: 13px; }
+    @media (max-width: 600px) {
+        .policy-container { padding: 20px; border-radius: 15px; }
+        .policy-header h1 { font-size: 22px; }
+        .policy-section { padding: 15px; }
+        .policy-section h3 { font-size: 16px; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="policy-page">
     <div class="policy-container">
