@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}سياسة الشحن<style>
+{% block title %}سياسة الشحن{% endblock %}
+{% block content %}
+<style>
     .policy-page { min-height: 100vh; padding: 40px 20px; display: flex; justify-content: center; align-items: flex-start; }
     .policy-container { max-width: 700px; width: 100%; background: rgba(26,26,46,0.6); border: 1px solid rgba(108,92,231,0.2); border-radius: 20px; padding: 40px; }
     .policy-header { text-align: center; margin-bottom: 20px; }
@@ -24,8 +26,6 @@
         .policy-section h3 { font-size: 16px; }
     }
     </style>
-{% endblock %}
-{% block content %}
 <div class="policy-page">
     <div class="policy-container">
         <div class="policy-header">
